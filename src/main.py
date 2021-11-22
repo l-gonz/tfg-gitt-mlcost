@@ -1,72 +1,101 @@
 import argparse
-
 import pandas as pd
-from pandas._libs import missing
 from pandas.core.frame import DataFrame
 
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
+
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import OrdinalEncoder
+from sklearn.linear_model import RidgeClassifier
+from sklearn.svm import SVC
+from sklearn.linear_model import SGDClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import VotingClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 
 MODEL_TYPES = {
-    'Forest': RandomForestClassifier()
+    'Linear': RidgeClassifier(),
+    'SupportVector': SVC(),
+    'StochasticGradient': SGDClassifier(),
+    'NaiveBayes': GaussianNB(),
+    'DecisionTree': DecisionTreeClassifier(),
+    'Forest': RandomForestClassifier(),
+    'AdaBoost': AdaBoostClassifier(),
+    # 'Voting': VotingClassifier(),
 }
 
-def get_args():
+def parse_args():
+    """Parse the command-line arguments and return an argument object."""
     parser = argparse.ArgumentParser(description='Dashboard to evaluate the cost of different ML models')
-    parser.add_argument('-d', '--dataset', help='filepath to dataset')
-    parser.add_argument('-t', '--target', default='target', help='target column')
-    parser.add_argument('--test', help='filepath to testset, if none will get split testset from dataset')
-    parser.add_argument('-s', '--separator', help='separator')
+    parser.add_argument('-d', '--dataset', help='filepath to dataset, uses Iris dataset if none given')
+    parser.add_argument('-l', '--labels', help='labels column, defaults to last column')
+    parser.add_argument('-t', '--test', help='filepath to testset, if none will get split testset from dataset')
+    parser.add_argument('-s', '--separator', default=",", help='separator')
     return parser.parse_args()
 
 def get_sets():
-    args = get_args()
-    if args.dataset == None:
+    """Return the train and test sets for the features and labels arrays."""
+    args = parse_args()
+    if not args.dataset:
         X, y = load_iris(return_X_y=True, as_frame=True)
     else:
-        data = pd.read_csv(args.dataset) if args.separator == None else pd.read_csv(args.dataset, sep=args.separator)
-        X, y = clean_target(data, args.target)
-    print(X.columns)
-    if args.test == None or args.dataset == None:
-        return train_test_split(X, y, train_size=0.8, test_size=0.2)
-    else:
-        test_data = pd.read_csv(args.test) if args.separator == None else pd.read_csv(args.dataset, sep=args.separator)
-        X_test, y_test = clean_target(test_data, args.target)
-        return X, X_test, y, y_test
+        data = pd.read_csv(args.dataset, sep=args.separator, engine='python')
+        X, y = split_labels(data, args.labels)
+        # Use separate table as test set if provided
+        if args.test:
+            test_data = pd.read_csv(args.dataset, sep=args.separator, engine='python')
+            X_test, y_test = split_labels(test_data, args.labels)
+            return X, X_test, y, y_test
 
-def clean_target(data: DataFrame, target: str):
+    return train_test_split(X, y, train_size=0.8, test_size=0.2)
+
+def split_labels(data: DataFrame, label_col: str):
+    """Separate the features from the labels.
+    
+    Parameters
+    ----------
+    data -- a DataFrame containing features and labels
+    label_col -- the name of the column with the labels
+    """
+    if not label_col:
+        label_col = data.columns[-1]
+
     # Remove rows with missing labels
-    data_all_labeled = data.dropna(axis=0, subset=[target])
-
-    # Ordinal-encode categories
-    enc = OrdinalEncoder()
-    data_all_labeled[[target]] = enc.fit_transform(data_all_labeled[[target]])
+    data_all_labeled = data.dropna(axis=0, subset=[label_col])
 
     # Separate features and labels
-    y = data_all_labeled[target]
-    X = data_all_labeled.drop([target], axis=1)
+    y = data_all_labeled[label_col]
+    X = data_all_labeled.drop([label_col], axis=1)
 
     return X, y
 
-def clean_features(X_train, X_test):
-
+def clean_features(X_train: DataFrame, X_test: DataFrame):
+    """Return a clean version of the input data.
+    
+    Drop categorical features with more than ten categories and
+    translates the others with One-Hot encoding.
+    Fill missing numerical values with the mean.
+    """
+    # Separate numerical and categorical columns
     numerical_cols = [col for col in X_train.columns if 
                 X_train[col].dtype in ['int64', 'float64']]
     categorical_cols = [col for col in X_train.columns if X_train[col].nunique() < 10 and 
                         X_train[col].dtype == "object"]
 
+    # Make copy and drop rows with missing categories
     X_train_clean = X_train[numerical_cols + categorical_cols].copy()
     X_test_clean = X_test[numerical_cols + categorical_cols].copy()
     X_train_clean = X_train_clean.dropna(axis=0, subset=categorical_cols)
     X_test_clean = X_test_clean.dropna(axis=0, subset=categorical_cols)
 
+    # Replace empty numerical items with mean and one-shot categorical columns
     numerical_transformer = SimpleImputer()
     categorical_transformer = OneHotEncoder(handle_unknown='ignore')
     preprocessor = ColumnTransformer(
@@ -88,25 +117,30 @@ def start_benchmark():
 def stop_benchmark():
     pass
 
-def get_score(target, predictions) -> int:
-    print(classification_report(target, predictions))
-    return accuracy_score(target, predictions)
+def get_score(labels, predictions) -> int:
+    return accuracy_score(labels, predictions)
+
+def main():
+    X_train, X_test, y_train, y_test = get_sets()
+    X_train_clean, X_test_clean = clean_features(X_train, X_test)
+    scores = {}
+    for name, model in MODEL_TYPES.items():
+        print("---------------------------")
+        start_benchmark()
+        model.fit(X_train_clean, y_train)
+        stop_benchmark()
+        predictions = model.predict(X_test_clean)
+        scores[name] = get_score(y_test, predictions)
+        print(f'{name}: {scores[name]:.4f}')
+        # print(classification_report(y_test, predictions))
 
 
-X_train, X_test, y_train, y_test = get_sets()
-X_train_clean, X_test_clean = clean_features(X_train, X_test)
-scores = {}
-for name, model in MODEL_TYPES.items():
-    start_benchmark()
-    model.fit(X_train_clean, y_train)
-    stop_benchmark()
-    predictions = model.predict(X_test_clean)
-    scores[name] = get_score(y_test, predictions)
-    print(f'{name}: {scores[name]}')
+if __name__== "__main__":
+    main()
 
-# Split
-# Preprocess
-# Foreach model type
-    # Choose model
-    # Measure
-# Show graphs
+"""
+Plan 23.11.21:
+    - Add codecarbon
+    - Add timing
+    - Make some graphs
+"""
