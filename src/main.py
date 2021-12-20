@@ -1,6 +1,10 @@
 import argparse
+import logging
+import timeit
+
 import pandas as pd
 from pandas.core.frame import DataFrame
+from codecarbon import EmissionsTracker
 
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
@@ -27,8 +31,7 @@ MODEL_TYPES = {
     'NaiveBayes': GaussianNB(),
     'DecisionTree': DecisionTreeClassifier(),
     'Forest': RandomForestClassifier(),
-    'AdaBoost': AdaBoostClassifier(),
-    # 'Voting': VotingClassifier(),
+    'AdaBoost': AdaBoostClassifier()
 }
 
 def parse_args():
@@ -110,37 +113,46 @@ def clean_features(X_train: DataFrame, X_test: DataFrame):
     return X_train_clean, X_test_clean
 
 def start_benchmark():
-    # Start codecarbon measures
-    # Start timing measures
-    pass
+    tracker = EmissionsTracker(project_name="ml-dashboard", save_to_file=False)
+    tracker.start()
+    time = timeit.default_timer()
+    return tracker, time
 
-def stop_benchmark():
-    pass
+def stop_benchmark(em_tracker, time_tracker):
+    return em_tracker.stop(), timeit.default_timer() - time_tracker
 
 def get_score(labels, predictions) -> int:
     return accuracy_score(labels, predictions)
 
+def print_output(name, score, emissions, time):
+    print("---------------------------")
+    print(name)
+    print(f'Accuracy: {score:.4f}')
+    print(f"Emissions: {emissions:.4e}kg (CO2 equ)")
+    print(f"Time: {time:.4f}s")
+    # print(classification_report(y_test, predictions))
+
 def main():
+    logging.getLogger('codecarbon').setLevel(logging.ERROR)
+
     X_train, X_test, y_train, y_test = get_sets()
     X_train_clean, X_test_clean = clean_features(X_train, X_test)
     scores = {}
     for name, model in MODEL_TYPES.items():
-        print("---------------------------")
-        start_benchmark()
+        em_tracker, time_tracker = start_benchmark()
         model.fit(X_train_clean, y_train)
-        stop_benchmark()
         predictions = model.predict(X_test_clean)
+        emissions, time = stop_benchmark(em_tracker, time_tracker)
         scores[name] = get_score(y_test, predictions)
-        print(f'{name}: {scores[name]:.4f}')
-        # print(classification_report(y_test, predictions))
+
+        print_output(name, scores[name], emissions, time)
 
 
 if __name__== "__main__":
     main()
 
 """
-Plan 23.11.21:
-    - Add codecarbon
-    - Add timing
-    - Make some graphs
+Plan:
+    - Prettify output
+    - CHECK if '?' are recognized as null
 """
