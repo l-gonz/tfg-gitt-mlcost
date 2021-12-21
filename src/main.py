@@ -150,9 +150,3 @@ def main():
 
 if __name__== "__main__":
     main()
-
-"""
-Plan:
-    - Prettify output
-    - CHECK if '?' are recognized as null
-"""
