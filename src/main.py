@@ -1,6 +1,9 @@
 import argparse
 import logging
 import timeit
+import platform
+import subprocess
+import re
 
 import pandas as pd
 from pandas.core.frame import DataFrame
@@ -9,14 +12,12 @@ from codecarbon import EmissionsTracker, OfflineEmissionsTracker
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from sklearn.metrics import classification_report
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import RidgeClassifier
 from sklearn.svm import SVC
 from sklearn.linear_model import SGDClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.ensemble import VotingClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 
@@ -133,10 +134,29 @@ def print_output(name, score, emissions, time):
     print(f'Accuracy: {score:.4f}')
     print(f"Emissions: {emissions:.4e}kg (CO2 equ)")
     print(f"Time: {time:.4f}s")
-    # print(classification_report(y_test, predictions))
+
+def print_computer_info():
+    print("Running on " + platform.node())
+    print(platform.freedesktop_os_release()['PRETTY_NAME'] + " " + platform.machine())
+    print("Python " + platform.python_version())
+    if platform.system() == "Linux":
+        output = subprocess.check_output("cat /proc/cpuinfo", shell=True).strip().decode().split('\n')
+        cpu_info = {item[0]: item[1] for item in [re.split("\s*:\s*", line, maxsplit=2) for line in output]}
+        if 'model name' in cpu_info:
+            print(cpu_info['model name'])
+        output = subprocess.check_output("cat /proc/meminfo", shell=True).strip().decode().split('\n')
+        mem_info = {item[0]: item[1] for item in [re.split("\s*:\s*", line, maxsplit=2) for line in output]}
+        if 'MemTotal' in mem_info:
+            ram = mem_info['MemTotal'].split()
+            count = 0
+            while int(ram[0]) >= 1024:
+                count += 1
+                ram[0] = int(ram[0]) / 1024
+            print("Memory: " + str("%.2f" % round(ram[0],2)) + " " + ("kB" if count == 0 else "MB" if count == 1 else "GB"))
 
 def main():
     logging.getLogger('codecarbon').setLevel(logging.ERROR)
+    print_computer_info()
 
     args = parse_args()
     X_train, X_test, y_train, y_test = get_sets(args)
