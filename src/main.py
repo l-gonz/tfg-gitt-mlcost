@@ -4,6 +4,7 @@ import timeit
 import platform
 import subprocess
 import re
+import os
 
 import pandas as pd
 from pandas.core.frame import DataFrame
@@ -34,6 +35,11 @@ MODEL_TYPES = {
     'Forest': RandomForestClassifier(),
     'AdaBoost': AdaBoostClassifier()
 }
+
+FILE_NAME = 'output.csv'
+
+INFO_COLUMN_NAMES = ["dataset", ""]
+MODEL_COLUMN_NAMES = ["accuracy", "time", "emissions"]
 
 def parse_args():
     """Parse the command-line arguments and return an argument object."""
@@ -154,6 +160,21 @@ def print_computer_info():
                 ram[0] = int(ram[0]) / 1024
             print("Memory: " + str("%.2f" % round(ram[0],2)) + " " + ("kB" if count == 0 else "MB" if count == 1 else "GB"))
 
+def get_column_names(model_name):
+    return ",".join([model_name + "_" + column for column in MODEL_COLUMN_NAMES])
+
+def log_to_file(dataset, scores, emissions, time):
+    if not os.path.exists(FILE_NAME):
+        with open(FILE_NAME, 'w') as file:
+            file.write(','.join(INFO_COLUMN_NAMES))
+            file.write(','.join([get_column_names(name) for name in MODEL_TYPES.keys()]))
+
+    with open(FILE_NAME, 'a') as file:
+        file.write('\n')
+        file.write(dataset if dataset else "iris" + ',')
+        file.write(','.join([f"{scores[name]},{time[name]},{emissions[name]}" for name in MODEL_TYPES.keys()]))
+    
+
 def main():
     logging.getLogger('codecarbon').setLevel(logging.ERROR)
     print_computer_info()
@@ -161,15 +182,16 @@ def main():
     args = parse_args()
     X_train, X_test, y_train, y_test = get_sets(args)
     X_train_clean, X_test_clean = clean_features(X_train, X_test)
-    scores = {}
+    scores, emissions, time = {}, {}, {}
     for name, model in MODEL_TYPES.items():
         em_tracker, time_tracker = start_benchmark(args.online)
         model.fit(X_train_clean, y_train)
         predictions = model.predict(X_test_clean)
-        emissions, time = stop_benchmark(em_tracker, time_tracker)
+        emissions[name], time[name] = stop_benchmark(em_tracker, time_tracker)
         scores[name] = get_score(y_test, predictions)
+        print_output(name, scores[name], emissions[name], time[name])
 
-        print_output(name, scores[name], emissions, time)
+    log_to_file(args.dataset, scores, emissions, time)
 
 
 if __name__== "__main__":
