@@ -4,7 +4,7 @@ import timeit
 
 import pandas as pd
 from pandas.core.frame import DataFrame
-from codecarbon import EmissionsTracker
+from codecarbon import EmissionsTracker, OfflineEmissionsTracker
 
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
@@ -41,11 +41,11 @@ def parse_args():
     parser.add_argument('-l', '--labels', help='labels column, defaults to last column')
     parser.add_argument('-t', '--test', help='filepath to testset, if none will get split testset from dataset')
     parser.add_argument('-s', '--separator', default=",", help='separator')
+    parser.add_argument('--online', action='store_true', help='use Codecarbon Emission Tracker in online mode')
     return parser.parse_args()
 
-def get_sets():
+def get_sets(args):
     """Return the train and test sets for the features and labels arrays."""
-    args = parse_args()
     if not args.dataset:
         X, y = load_iris(return_X_y=True, as_frame=True)
     else:
@@ -112,8 +112,11 @@ def clean_features(X_train: DataFrame, X_test: DataFrame):
 
     return X_train_clean, X_test_clean
 
-def start_benchmark():
-    tracker = EmissionsTracker(project_name="ml-dashboard", save_to_file=False)
+def start_benchmark(online=False):
+    if online:
+        tracker = EmissionsTracker(project_name="ml-dashboard", save_to_file=False)
+    else:
+        tracker = OfflineEmissionsTracker(country_iso_code="ESP" , project_name="ml-dashboard", save_to_file=False)
     tracker.start()
     time = timeit.default_timer()
     return tracker, time
@@ -135,11 +138,12 @@ def print_output(name, score, emissions, time):
 def main():
     logging.getLogger('codecarbon').setLevel(logging.ERROR)
 
-    X_train, X_test, y_train, y_test = get_sets()
+    args = parse_args()
+    X_train, X_test, y_train, y_test = get_sets(args)
     X_train_clean, X_test_clean = clean_features(X_train, X_test)
     scores = {}
     for name, model in MODEL_TYPES.items():
-        em_tracker, time_tracker = start_benchmark()
+        em_tracker, time_tracker = start_benchmark(args.online)
         model.fit(X_train_clean, y_train)
         predictions = model.predict(X_test_clean)
         emissions, time = stop_benchmark(em_tracker, time_tracker)
