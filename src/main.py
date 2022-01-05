@@ -5,6 +5,7 @@ import platform
 import subprocess
 import re
 import os
+import psutil
 
 import pandas as pd
 from pandas.core.frame import DataFrame
@@ -38,7 +39,7 @@ MODEL_TYPES = {
 
 FILE_NAME = 'output.csv'
 
-INFO_COLUMN_NAMES = ["dataset", ""]
+INFO_COLUMN_NAMES = ["dataset", "cpu_load", ""]
 MODEL_COLUMN_NAMES = ["accuracy", "time", "emissions"]
 
 def parse_args():
@@ -172,6 +173,7 @@ def log_to_file(dataset, scores, emissions, time):
     with open(FILE_NAME, 'a') as file:
         file.write('\n')
         file.write(dataset if dataset else "iris" + ',')
+        file.write(str(psutil.getloadavg()[0] / psutil.cpu_count() * 100) + ',')
         file.write(','.join([f"{scores[name]},{time[name]},{emissions[name]}" for name in MODEL_TYPES.keys()]))
     
 
