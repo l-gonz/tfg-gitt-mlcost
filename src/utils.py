@@ -3,6 +3,7 @@ import subprocess
 import re
 import os
 import psutil
+import math
 
 
 FILE_NAME = 'output.csv'
@@ -10,14 +11,32 @@ FILE_NAME = 'output.csv'
 INFO_COLUMN_NAMES = ["dataset", "cpu_load", ""]
 MODEL_COLUMN_NAMES = ["accuracy", "time", "emissions"]
 
+EMISSION_UNITS = ["kg", "g", "mg", "μg", "ng"]
+DAY = 24*60*60
+HOUR = 60*60
+MINUTE = 60
+
 
 def print_output(name, score, emissions, time):
     """Print model scores to standard output."""
     print("---------------------------")
     print(name)
-    print(f'Accuracy: {score:.4f}')
-    print(f"Emissions: {emissions:.4e}kg (CO2 equ)")
-    print(f"Time: {time:.4f}s")
+    print(f'Accuracy: {score:.2%}')
+
+    days, s = divmod(time, DAY)
+    hours, s = divmod(s, HOUR)
+    mins, secs = divmod(s, MINUTE)
+    time_format = "Time: " + \
+        ("{days} days " if days > 0 else "") + \
+        ("{hours} hours " if hours > 0 else "") + \
+        ("{mins} min " if mins > 0 else "") + \
+        ("{secs:.4g} s" if secs > 1 else "") + \
+        ("{milis:.4g} ms" if secs < 1 else "")
+    print(time_format.format(days=int(days), hours=int(hours), mins=int(mins), secs=secs, milis=secs * 1000))
+
+    exp = math.floor(math.log10(emissions)) // 3
+    unit = EMISSION_UNITS[abs(exp)]
+    print(f"Emissions: {emissions/ 10**(3*exp):.2f} {unit} (CO2 equ)")
 
 
 def print_computer_info():
