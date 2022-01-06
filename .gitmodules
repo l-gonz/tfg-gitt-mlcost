@@ -1,0 +1,3 @@
+[submodule "codecarbon"]
+	path = codecarbon
+	url = git@github.com:mlco2/codecarbon.git
