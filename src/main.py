@@ -1,7 +1,8 @@
 import argparse
 import logging
-import timeit
+
 from codecarbon import EmissionsTracker, OfflineEmissionsTracker
+from codecarbon.emissions_tracker import BaseEmissionsTracker
 
 import utils
 import learn
@@ -18,20 +19,22 @@ def parse_args():
     return parser.parse_args()
 
 
-def start_benchmark(online=False):
+def start_benchmark(online=False) -> BaseEmissionsTracker:
     """Start emission and time tracking."""
     if online:
         tracker = EmissionsTracker(project_name="ml-dashboard", save_to_file=False)
     else:
         tracker = OfflineEmissionsTracker(country_iso_code="ESP" , project_name="ml-dashboard", save_to_file=False)
+
+    tracker.persistence_objs.append(utils.EmissionsOutput())
     tracker.start()
-    time = timeit.default_timer()
-    return tracker, time
+    return tracker
 
 
-def stop_benchmark(em_tracker, time_tracker):
+def stop_benchmark(em_tracker: BaseEmissionsTracker):
     """Stop emission and time tracking."""
-    return em_tracker.stop(), timeit.default_timer() - time_tracker
+    em_tracker.stop()
+    return em_tracker.persistence_objs[0].data
     
 
 def main():
@@ -41,17 +44,17 @@ def main():
     args = parse_args()
     X_train, X_test, y_train, y_test = learn.get_sets(args.dataset, args.test, args.labels, args.separator)
     X_train_clean, X_test_clean = learn.clean_features(X_train, X_test)
-    scores, emissions, time = {}, {}, {}
+    scores, emissions = {}, {}
     for name, model in learn.MODEL_TYPES.items():
-        em_tracker, time_tracker = start_benchmark(args.online)
+        em_tracker = start_benchmark(args.online)
         model.fit(X_train_clean, y_train)
         predictions = model.predict(X_test_clean)
-        emissions[name], time[name] = stop_benchmark(em_tracker, time_tracker)
+        emissions[name] = stop_benchmark(em_tracker)
         scores[name] = learn.get_score(y_test, predictions)
-        utils.print_output(name, scores[name], emissions[name], time[name])
+        utils.print_output(name, scores[name], emissions[name].duration, emissions[name].emissions, emissions[name].energy_consumed)
 
     if args.file:
-        utils.log_to_file(args.dataset, scores, emissions, time, learn.MODEL_TYPES)
+        utils.log_to_file(args.dataset, scores, emissions, learn.MODEL_TYPES)
 
 
 if __name__== "__main__":

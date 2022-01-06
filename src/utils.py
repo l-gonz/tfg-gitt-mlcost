@@ -5,19 +5,28 @@ import os
 import psutil
 import math
 
+from codecarbon.output import BaseOutput
+
 
 FILE_NAME = 'output.csv'
 
 INFO_COLUMN_NAMES = ["dataset", "cpu_load", ""]
-MODEL_COLUMN_NAMES = ["accuracy", "time", "emissions"]
+MODEL_COLUMN_NAMES = ["accuracy", "time", "emissions", "energy_consumed"]
 
-EMISSION_UNITS = ["kg", "g", "mg", "μg", "ng"]
+UNITS = ["k", "", "m", "μ", "n"]
 DAY = 24*60*60
 HOUR = 60*60
 MINUTE = 60
 
 
-def print_output(name, score, emissions, time):
+class EmissionsOutput(BaseOutput):
+    """Output class for codecarbon's emission tracker that stores
+    all the data recorded."""
+    def out(self, emissions_data):
+        self.data = emissions_data
+
+
+def print_output(name, score, time, emissions, energy):
     """Print model scores to standard output."""
     print("---------------------------")
     print(name)
@@ -35,8 +44,12 @@ def print_output(name, score, emissions, time):
     print(time_format.format(days=int(days), hours=int(hours), mins=int(mins), secs=secs, milis=secs * 1000))
 
     exp = math.floor(math.log10(emissions)) // 3
-    unit = EMISSION_UNITS[abs(exp)]
-    print(f"Emissions: {emissions/ 10**(3*exp):.2f} {unit} (CO2 equ)")
+    unit = UNITS[abs(exp)]
+    print(f"Emissions: {emissions/ 10**(3*exp):.2f} {unit}g (CO2-equivalents)")
+
+    exp = math.floor(math.log10(energy)) // 3
+    unit = UNITS[abs(exp)]
+    print(f"Energy consumed: {energy/ 10**(3*exp):.2f} {unit}Wh")
 
 
 def print_computer_info():
@@ -65,7 +78,7 @@ def get_column_names(model_name):
     return ",".join([model_name + "_" + column for column in MODEL_COLUMN_NAMES])
 
 
-def log_to_file(dataset, scores, emissions, time, models):
+def log_to_file(dataset, scores, emissions, models):
     """Output models and scores to a csv file."""
     if not os.path.exists(FILE_NAME):
         with open(FILE_NAME, 'w') as file:
@@ -76,4 +89,5 @@ def log_to_file(dataset, scores, emissions, time, models):
         file.write('\n')
         file.write(dataset if dataset else "iris" + ',')
         file.write(str(psutil.getloadavg()[0] / psutil.cpu_count() * 100) + ',')
-        file.write(','.join([f"{scores[name]},{time[name]},{emissions[name]}" for name in models.keys()]))
+        file.write(','.join([f"{scores[name]},{emissions[name].duration},{emissions[name].emissions},{emissions[name].energy_consumed}" 
+            for name in models.keys()]))
