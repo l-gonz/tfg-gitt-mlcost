@@ -28,7 +28,6 @@ class EmissionsOutput(BaseOutput):
 
 def print_output(name, score, time, emissions, energy):
     """Print model scores to standard output."""
-    print("---------------------------")
     print(name)
     print(f'Accuracy: {score:.2%}')
 
@@ -50,10 +49,12 @@ def print_output(name, score, time, emissions, energy):
     exp = math.floor(math.log10(energy)) // 3
     unit = UNITS[abs(exp)]
     print(f"Energy consumed: {energy/ 10**(3*exp):.2f} {unit}Wh")
+    print("---------------------------")
 
 
 def print_computer_info():
     """Print platform, CPU and RAM info to standard output."""
+    print("---------------------------")
     print("Running on " + platform.node())
     print(platform.freedesktop_os_release()['PRETTY_NAME'] + " " + platform.machine())
     print("Python " + platform.python_version())
@@ -71,6 +72,9 @@ def print_computer_info():
                 count += 1
                 ram[0] = int(ram[0]) / 1024
             print("Memory: " + str("%.2f" % round(ram[0],2)) + " " + ("kB" if count == 0 else "MB" if count == 1 else "GB"))
+    print("Start load: " + str(psutil.getloadavg()[0]))
+    print("---------------------------")
+    
 
 
 def get_column_names(model_name):
@@ -87,7 +91,7 @@ def log_to_file(dataset, scores, emissions, models):
 
     with open(FILE_NAME, 'a') as file:
         file.write('\n')
-        file.write(dataset if dataset else "iris" + ',')
+        file.write((dataset if dataset else "iris") + ',')
         file.write(str(psutil.getloadavg()[0] / psutil.cpu_count() * 100) + ',')
         file.write(','.join([f"{scores[name]},{emissions[name].duration},{emissions[name].emissions},{emissions[name].energy_consumed}" 
             for name in models.keys()]))
