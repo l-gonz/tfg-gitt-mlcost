@@ -5,14 +5,24 @@ This python script runs a comparison of several machine learning models on a dat
 An example of the measures obtained for the included datasets can be seen on the [output](output.txt) file.
 
 ## Setup
-1. Clone repository
+The program has been tested on Ubuntu 20.04 with Python 3.8.
+Necessary system packages:
+```
+python3.8-tk (GUI for matplotlib graphs)
+stress (simulated stress conditions for CPU tests)
+```
+1. Clone repository and change directory to the created folder
 2. Create virtual environment for managing dependencies
 ```
-conda create -n mlcost -f environment.yml
+python3 -m venv venv
 ```
 3. Activate the environment
 ```
-conda activate mlcost
+source venv/bin/activate
+```
+3. Install packages with PIP
+```
+pip install -r requirements.txt
 ```
 
 ## Execution
