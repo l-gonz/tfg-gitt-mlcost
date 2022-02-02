@@ -56,15 +56,19 @@ def print_computer_info():
     """Print platform, CPU and RAM info to standard output."""
     print("---------------------------")
     print("Running on " + platform.node())
-    print(platform.freedesktop_os_release()['PRETTY_NAME'] + " " + platform.machine())
+    try:
+        print(platform.freedesktop_os_release()['PRETTY_NAME'] + " " + platform.machine())
+    except AttributeError:
+        print(f"{platform.system()} {platform.release()}")
+        
     print("Python " + platform.python_version())
     if platform.system() == "Linux":
         output = subprocess.check_output("cat /proc/cpuinfo", shell=True).strip().decode().split('\n')
-        cpu_info = {item[0]: item[1] for item in [re.split("\s*:\s*", line, maxsplit=2) for line in output]}
+        cpu_info = {item[0]: item[1] for item in [re.split("\s*:\s*", line, maxsplit=2) for line in output if line]}
         if 'model name' in cpu_info:
             print(cpu_info['model name'])
         output = subprocess.check_output("cat /proc/meminfo", shell=True).strip().decode().split('\n')
-        mem_info = {item[0]: item[1] for item in [re.split("\s*:\s*", line, maxsplit=2) for line in output]}
+        mem_info = {item[0]: item[1] for item in [re.split("\s*:\s*", line, maxsplit=2) for line in output if line]}
         if 'MemTotal' in mem_info:
             ram = mem_info['MemTotal'].split()
             count = 0
@@ -72,7 +76,7 @@ def print_computer_info():
                 count += 1
                 ram[0] = int(ram[0]) / 1024
             print("Memory: " + str("%.2f" % round(ram[0],2)) + " " + ("kB" if count == 0 else "MB" if count == 1 else "GB"))
-    print("Start load: " + str(psutil.getloadavg()[0]))
+    print("Start load: " + f"{psutil.getloadavg()[0] / psutil.cpu_count() * 100:.2f}%")
     print("---------------------------")
     
 
