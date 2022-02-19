@@ -29,7 +29,10 @@ class EmissionsOutput(BaseOutput):
 def print_output(name, score, time, emissions, energy):
     """Print model scores to standard output."""
     print(name)
-    print(f'Accuracy: {score:.2%}')
+    if isinstance(score, float): 
+        print(f'Accuracy: {score:.2%}')
+    else:
+        print(f"Score:\n{score}")
 
     days, s = divmod(time, DAY)
     hours, s = divmod(s, HOUR)

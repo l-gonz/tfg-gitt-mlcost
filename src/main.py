@@ -45,17 +45,20 @@ def main():
     utils.print_computer_info()
 
     args = parse_args()
-    X_train, X_test, y_train, y_test = learn.get_sets(args.dataset, args.test, args.labels, args.separator)
-    X_train_clean, X_test_clean = learn.clean_features(X_train, X_test)
+    trainer = learn.Trainer(args.dataset, args.test, args.labels, args.separator)
+    trainer.clean_data()
+    trainer.print_summary()
+    
     scores, emissions = {}, {}
     for name, model in learn.MODEL_TYPES.items():
         filename = "_".join([args.file, name]) if args.file else ""
         em_tracker = start_benchmark(args.online, bool(args.file), filename)
-        model.fit(X_train_clean, y_train)
-        predictions = model.predict(X_test_clean)
+        predictions = trainer.train(model)
         emissions[name] = stop_benchmark(em_tracker)
-        scores[name] = learn.get_score(y_test, predictions)
-        utils.print_output(name, scores[name], emissions[name].duration, emissions[name].emissions, emissions[name].energy_consumed)
+        scores[name] = trainer.score(predictions)
+
+        utils.print_output(name, scores[name], emissions[name].duration, 
+            emissions[name].emissions, emissions[name].energy_consumed)
 
     if args.verbose:
         utils.log_to_file(args.dataset, scores, emissions, learn.MODEL_TYPES)

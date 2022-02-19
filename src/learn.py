@@ -1,9 +1,12 @@
+from cgi import test
+from operator import index
+from unittest.mock import DEFAULT
 import pandas as pd
 from pandas.core.frame import DataFrame
 
 from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, precision_recall_fscore_support
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import RidgeClassifier
@@ -27,77 +30,135 @@ MODEL_TYPES = {
     'AdaBoost': AdaBoostClassifier()
 }
 
-def get_sets(dataset, testset, labels, separator=','):
-    """Return the train and test sets for the features and labels arrays."""
-    if not dataset:
-        X, y = load_iris(return_X_y=True, as_frame=True)
-    else:
-        data = pd.read_csv(dataset, sep=separator, engine='python')
-        X, y = split_labels(data, labels)
-        # Use separate table as test set if provided
-        if testset:
-            test_data = pd.read_csv(dataset, sep=separator, engine='python')
-            X_test, y_test = split_labels(test_data, labels)
-            return X, X_test, y, y_test
-
-    return train_test_split(X, y, train_size=0.8, test_size=0.2)
+class Trainer():
+    DEFAULT_DATASET_NAME = "Iris"
+    DEFAULT_DATASET = load_iris(return_X_y=True, as_frame=True)
+    TEST_SIZE = 0.2
+    MAX_CATEGORIES = 10
 
 
-def split_labels(data: DataFrame, label_col: str):
-    """Separate the features from the labels.
+    def __init__(self, data_path, test_path=None, target_label=None, separator=',', null_values=None):
+        if data_path:
+            self.name = data_path.split('/')[-1].split('.')[0].capitalize()
+        else:
+            self.name = self.DEFAULT_DATASET_NAME
+
+        self.data_path = data_path
+        self.test_path = test_path
+        self.target_label = target_label
+        self.separator = separator
+        self.null_values = null_values
+
+        self.original_data, self.original_targets = self.__read_data()
+        self.__split_test_data()
+        self.__identify_columns()
+
+        
+    def __read_data(self):
+        if self.data_path:
+            data = pd.read_csv(self.data_path, sep=self.separator, na_values=self.null_values, engine='python')
+            return self.__split_labels(data)
+        else:
+            return self.DEFAULT_DATASET
+
+
+    def __split_test_data(self):
+        """Return the train and test sets for the features and labels arrays."""
+        if self.test_path:
+            test_data = pd.read_csv(self.test_path, sep=self.separator, na_values=self.null_values, engine='python')
+            self.test_data, self.test_target = self.__split_labels(test_data)
+            self.train_data = self.original_data.copy()
+            self.train_target = self.original_targets.copy()
+        else:
+            self.train_data, self.test_data, self.train_target, self.test_target = train_test_split(
+                self.original_data, self.original_targets,
+                train_size=1-self.TEST_SIZE, test_size=self.TEST_SIZE)
+
     
-    Parameters
-    ----------
-    data -- a DataFrame containing features and labels
-    label_col -- the name of the column with the labels
-    """
-    if not label_col:
-        label_col = data.columns[-1]
+    def __split_labels(self, data: DataFrame):
+        """Separate the features from the labels.
+        
+        Parameters
+        ----------
+        data -- a DataFrame containing features and labels
+        """
+        if not self.target_label:
+            self.target_label = data.columns[-1]
 
-    # Remove rows with missing labels
-    data_all_labeled = data.dropna(axis=0, subset=[label_col])
+        # Remove rows with missing labels
+        data_all_labeled = data.dropna(axis=0, subset=[self.target_label])
 
-    # Separate features and labels
-    y = data_all_labeled[label_col]
-    X = data_all_labeled.drop([label_col], axis=1)
+        # Separate features and labels
+        y = data_all_labeled[self.target_label]
+        X = data_all_labeled.drop([self.target_label], axis=1)
 
-    return X, y
+        return X, y
 
 
-def clean_features(X_train: DataFrame, X_test: DataFrame):
-    """Return a clean version of the input data.
+    def __drop_missing_values(self, cols):
+        """Remove rows with missing values on the given columns."""
+        mask = self.train_data[cols].isna().any(axis=1)
+        null_indexes_train = self.train_data.index[mask]
+        self.train_data.drop(index=null_indexes_train, inplace=True)
+        self.train_target.drop(index=null_indexes_train, inplace=True)
+        
+        mask = self.test_data[cols].isna().any(axis=1)
+        null_indexes_test = self.test_data.index[mask]
+        self.test_data.drop(index=null_indexes_test, inplace=True)
+        self.test_target.drop(index=null_indexes_test, inplace=True)
+
+
+    def __identify_columns(self):
+        """Identify numerical and categorical columns that should be used."""
+        self.numerical_cols = [col for col in self.train_data if 
+                    self.train_data[col].dtype in ['int64', 'float64']]
+        self.categorical_cols = [col for col in self.train_data if
+                    self.train_data[col].nunique() < self.MAX_CATEGORIES and self.train_data[col].dtype == "object"]
+
+
+    def clean_data(self):
+        """Return a clean version of the input data.
+        
+        Drop categorical features with more than ten categories and
+        translates the others with One-Hot encoding.
+        Fill missing numerical values with the mean.
+        """
+        dropped_cols = [col for col in self.train_data if col not in self.numerical_cols + self.categorical_cols]
+
+        # Remove categorical columns with too many categories
+        self.train_data.drop(columns=dropped_cols, inplace=True)
+        self.test_data.drop(columns=dropped_cols, inplace=True)
+        self.__drop_missing_values(self.categorical_cols)
+
+        # Replace empty numerical items with mean and one-shot categorical columns
+        numerical_transformer = SimpleImputer()
+        categorical_transformer = OneHotEncoder(handle_unknown='ignore')
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', numerical_transformer, self.numerical_cols),
+                ('cat', categorical_transformer, self.categorical_cols)
+            ])
+
+        self.train_data = preprocessor.fit_transform(self.train_data)
+        self.test_data = preprocessor.transform(self.test_data)
+
+
+    def train(self, model):
+        model.fit(self.train_data, self.train_target)
+        return model.predict(self.test_data)
+
+
+    def score(self, predictions, basic=False) -> float:
+        """Return the accuracy score from the test set labels vs the predicted labels."""
+        # print(confusion_matrix(labels, predictions))
+        if basic:
+            return accuracy_score(self.test_target, predictions)
+        else:
+            return classification_report(self.test_target, predictions)
+
     
-    Drop categorical features with more than ten categories and
-    translates the others with One-Hot encoding.
-    Fill missing numerical values with the mean.
-    """
-    # Separate numerical and categorical columns
-    numerical_cols = [col for col in X_train.columns if 
-                X_train[col].dtype in ['int64', 'float64']]
-    categorical_cols = [col for col in X_train.columns if X_train[col].nunique() < 10 and 
-                        X_train[col].dtype == "object"]
-
-    # Make copy and drop rows with missing categories
-    X_train_clean = X_train[numerical_cols + categorical_cols].copy()
-    X_test_clean = X_test[numerical_cols + categorical_cols].copy()
-    X_train_clean = X_train_clean.dropna(axis=0, subset=categorical_cols)
-    X_test_clean = X_test_clean.dropna(axis=0, subset=categorical_cols)
-
-    # Replace empty numerical items with mean and one-shot categorical columns
-    numerical_transformer = SimpleImputer()
-    categorical_transformer = OneHotEncoder(handle_unknown='ignore')
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', numerical_transformer, numerical_cols),
-            ('cat', categorical_transformer, categorical_cols)
-        ])
-
-    X_train_clean = preprocessor.fit_transform(X_train_clean)
-    X_test_clean = preprocessor.transform(X_test_clean)
-
-    return X_train_clean, X_test_clean
-
-
-def get_score(labels, predictions) -> int:
-    """Return the accuracy score from the test set labels vs the predicted labels."""
-    return accuracy_score(labels, predictions)
+    def print_summary(self):
+        pass
+        # Print number of features per type before and after
+        # Print target categories and number of each in train and test
+        # Number of rows before and after
