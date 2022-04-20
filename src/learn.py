@@ -2,8 +2,8 @@ import pandas as pd
 from pandas.core.frame import DataFrame
 
 from sklearn.datasets import load_iris
-from sklearn.model_selection import cross_val_score, train_test_split
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, precision_recall_fscore_support
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report, precision_recall_fscore_support
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import RidgeClassifier
@@ -158,13 +158,16 @@ class Trainer():
         return model.predict(self.test_data)
 
 
-    def score(self, predictions, basic=True) -> float:
+    def score(self, predictions) -> float:
         """Return the accuracy score from the test set labels vs the predicted labels."""
-        # print(confusion_matrix(labels, predictions))
-        if basic:
-            return accuracy_score(self.test_target, predictions)
-        else:
-            return classification_report(self.test_target, predictions)
+        self.report = classification_report(self.test_target, predictions)
+        p, r, f, _ = precision_recall_fscore_support(self.test_target, predictions, average='weighted')
+        return {
+            "accuracy": accuracy_score(self.test_target, predictions),
+            "precision": p,
+            "f-beta": f,
+            "recall": r,
+        }
 
     
     def print_summary(self, dropped_cols, original_size):

@@ -10,7 +10,7 @@ from codecarbon.output import BaseOutput
 
 FILE_NAME = 'output.csv'
 
-COLUMN_NAMES = ["dataset", "model", "cpu_load", "accuracy", "time", "emissions", "energy_consumed"]
+COLUMN_NAMES = ["dataset", "model", "cpu_load", "accuracy", "precision", "f-beta", "recall", "time", "emissions", "energy_consumed"]
 
 UNITS = ["k", "", "m", "μ", "n"]
 DAY = 24*60*60
@@ -31,7 +31,7 @@ def print_output(name, score, time, emissions, energy):
     if isinstance(score, float): 
         print(f'Accuracy: {score:.2%}')
     else:
-        print(f"Score:\n{score}")
+        print(f"Report:\n{score}")
 
     days, s = divmod(time, DAY)
     hours, s = divmod(s, HOUR)
@@ -91,4 +91,5 @@ def log_to_file(dataset, score, emission, model):
     with open(FILE_NAME, 'a') as file:
         file.write(f"\n{dataset},{model},")
         file.write(str(psutil.getloadavg()[0] / psutil.cpu_count() * 100))
-        file.write(f",{score},{emission.duration},{emission.emissions},{emission.energy_consumed}")
+        file.write("," + ",".join(str("%.4f" % score[key]) for key in COLUMN_NAMES[3:7]))
+        file.write(f",{emission.duration},{emission.emissions},{emission.energy_consumed}")

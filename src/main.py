@@ -16,7 +16,7 @@ def parse_args():
     parser.add_argument('-s', '--separator', default=",", help='separator')
     parser.add_argument('-f', '--codecarbon-file', help="filename for default output from codecarbon, can be used with codecarbon's own visualization tool")
     parser.add_argument('--online', action='store_true', help='use Codecarbon Emission Tracker in online mode')
-    parser.add_argument('--verbose', action='store_true', help='output to additional csv file with whole experiment data')
+    parser.add_argument('--log', action='store_true', help='output to additional csv file with whole experiment data')
     parser.add_argument('--no-header', action='store_true', help='do not consider the first row in the data to be the header')
     return parser.parse_args()
 
@@ -57,12 +57,10 @@ def main():
             emission = stop_benchmark(em_tracker)
             score = trainer.score(predictions)
 
-            utils.print_output(name, score, emission.duration, emission.emissions, emission.energy_consumed)
+            utils.print_output(name, trainer.report, emission.duration, emission.emissions, emission.energy_consumed)
 
-            if args.verbose:
+            if args.log:
                 utils.log_to_file(trainer.name, score, emission, name)
-    except Exception as e:
-        logging.error("Error: " + str(e))
     except KeyboardInterrupt:
         pass
 
