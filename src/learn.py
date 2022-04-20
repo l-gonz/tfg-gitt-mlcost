@@ -1,6 +1,3 @@
-from cgi import test
-from operator import index
-from unittest.mock import DEFAULT
 import pandas as pd
 from pandas.core.frame import DataFrame
 
@@ -37,7 +34,7 @@ class Trainer():
     MAX_CATEGORIES = 10
 
 
-    def __init__(self, data_path, test_path=None, target_label=None, separator=',', null_values=None):
+    def __init__(self, data_path, test_path=None, target_label=None, separator=',', no_header=False, null_values=None):
         if data_path:
             self.name = data_path.split('/')[-1].split('.')[0].capitalize()
         else:
@@ -46,8 +43,15 @@ class Trainer():
         self.data_path = data_path
         self.test_path = test_path
         self.target_label = target_label
-        self.separator = separator
-        self.null_values = null_values
+
+        self.read_args = {"engine": "python"}
+        # Make headers if data had none
+        if no_header:
+            self.read_args["header"] = None
+            with open(self.data_path) as f:
+                self.read_args["names"] = ["Col" + str(i) for i in range(f.readline().count(separator))] + ["Target"]
+        if separator: self.read_args["sep"] = separator
+        if null_values: self.read_args["na_values"] = null_values
 
         self.original_data, self.original_targets = self.__read_data()
         self.__split_test_data()
@@ -56,7 +60,7 @@ class Trainer():
         
     def __read_data(self):
         if self.data_path:
-            data = pd.read_csv(self.data_path, sep=self.separator, na_values=self.null_values, engine='python')
+            data = pd.read_csv(self.data_path, **self.read_args)
             return self.__split_labels(data)
         else:
             return self.DEFAULT_DATASET
@@ -65,7 +69,7 @@ class Trainer():
     def __split_test_data(self):
         """Return the train and test sets for the features and labels arrays."""
         if self.test_path:
-            test_data = pd.read_csv(self.test_path, sep=self.separator, na_values=self.null_values, engine='python')
+            test_data = pd.read_csv(self.test_path, **self.read_args)
             self.test_data, self.test_target = self.__split_labels(test_data)
             self.train_data = self.original_data.copy()
             self.train_target = self.original_targets.copy()
@@ -116,14 +120,17 @@ class Trainer():
                     self.train_data[col].nunique() < self.MAX_CATEGORIES and self.train_data[col].dtype == "object"]
 
 
-    def clean_data(self):
+    def clean_data(self, log_output=False):
         """Return a clean version of the input data.
         
         Drop categorical features with more than ten categories and
         translates the others with One-Hot encoding.
         Fill missing numerical values with the mean.
+
+        log_output -- whether to print a summary of the changes to stdout
         """
         dropped_cols = [col for col in self.train_data if col not in self.numerical_cols + self.categorical_cols]
+        original_row_count = self.train_data.shape[0], self.test_data.shape[0]
 
         # Remove categorical columns with too many categories
         self.train_data.drop(columns=dropped_cols, inplace=True)
@@ -142,13 +149,16 @@ class Trainer():
         self.train_data = preprocessor.fit_transform(self.train_data)
         self.test_data = preprocessor.transform(self.test_data)
 
+        if log_output:
+            self.print_summary(dropped_cols, original_row_count)
+
 
     def train(self, model):
         model.fit(self.train_data, self.train_target)
         return model.predict(self.test_data)
 
 
-    def score(self, predictions, basic=False) -> float:
+    def score(self, predictions, basic=True) -> float:
         """Return the accuracy score from the test set labels vs the predicted labels."""
         # print(confusion_matrix(labels, predictions))
         if basic:
@@ -157,8 +167,24 @@ class Trainer():
             return classification_report(self.test_target, predictions)
 
     
-    def print_summary(self):
-        pass
+    def print_summary(self, dropped_cols, original_size):
         # Print number of features per type before and after
         # Print target categories and number of each in train and test
         # Number of rows before and after
+
+        print("DATA PREPROCESSING SUMMARY")
+        print("Original data:\n")
+        print(self.original_data.describe())
+        print(f"\nDiscarded features: {dropped_cols}")
+        print(f"Trained numerical features: {self.numerical_cols}")
+        print(f"Trained categorical features: {self.categorical_cols}")
+        print("\nRemoved rows from missing categorical values - Train:",
+            str(original_size[0] - self.train_data.shape[0]), ", Test:",
+            str(original_size[1] - self.test_data.shape[0]))
+        print(f"Final train set rows: {self.train_data.shape[0]}, test set rows: {self.test_data.shape[0]}")
+
+        print("\nTarget distribution:")
+        counts_train = self.train_target.value_counts(normalize=True, dropna=False)
+        counts_test = self.test_target.value_counts(normalize=True, dropna=False)
+        print(pd.concat([counts_train.rename('train'), counts_test.rename('test')], axis=1))
+        print("---------------------------")
