@@ -10,8 +10,7 @@ from codecarbon.output import BaseOutput
 
 FILE_NAME = 'output.csv'
 
-INFO_COLUMN_NAMES = ["dataset", "cpu_load", ""]
-MODEL_COLUMN_NAMES = ["accuracy", "time", "emissions", "energy_consumed"]
+COLUMN_NAMES = ["dataset", "model", "cpu_load", "accuracy", "time", "emissions", "energy_consumed"]
 
 UNITS = ["k", "", "m", "μ", "n"]
 DAY = 24*60*60
@@ -81,24 +80,15 @@ def print_computer_info():
             print("Memory: " + str("%.2f" % round(ram[0],2)) + " " + ("kB" if count == 0 else "MB" if count == 1 else "GB"))
     print("Start load: " + f"{psutil.getloadavg()[0] / psutil.cpu_count() * 100:.2f}%")
     print("---------------------------")
-    
 
 
-def get_column_names(model_name):
-    """Return column names for the given model as comma-separated values."""
-    return ",".join([model_name + "_" + column for column in MODEL_COLUMN_NAMES])
-
-
-def log_to_file(dataset, scores, emissions, models):
+def log_to_file(dataset, score, emission, model):
     """Output models and scores to a csv file."""
     if not os.path.exists(FILE_NAME):
         with open(FILE_NAME, 'w') as file:
-            file.write(','.join(INFO_COLUMN_NAMES))
-            file.write(','.join([get_column_names(name) for name in models.keys()]))
+            file.write(','.join(COLUMN_NAMES))
 
     with open(FILE_NAME, 'a') as file:
-        file.write('\n')
-        file.write((dataset if dataset else "iris") + ',')
-        file.write(str(psutil.getloadavg()[0] / psutil.cpu_count() * 100) + ',')
-        file.write(','.join([f"{scores[name]},{emissions[name].duration},{emissions[name].emissions},{emissions[name].energy_consumed}" 
-            for name in models.keys()]))
+        file.write(f"\n{dataset},{model},")
+        file.write(str(psutil.getloadavg()[0] / psutil.cpu_count() * 100))
+        file.write(f",{score},{emission.duration},{emission.emissions},{emission.energy_consumed}")
