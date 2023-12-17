@@ -1,5 +1,7 @@
-import learn
 import pandas
+import numpy
+
+from mlcost import learn
 
 PATH = "data/test/{0}.csv"
 TEST_TYPES = ['int64','object','float64','float64']
@@ -45,3 +47,28 @@ def test_remove_missing_categories_rows():
     assert trainer.test_data.shape == (3, 4)
     assert trainer.train_data.shape[0] == trainer.train_target.shape[0]
     assert trainer.test_data.shape[0] == trainer.test_target.shape[0]
+
+def test_missing_categorical_data():
+    trainer = learn.Trainer(PATH.format("full"), null_values='?')
+    trainer.clean_data()
+    all_data = numpy.concatenate((trainer.train_data, trainer.test_data), axis=0)
+    assert all_data.shape[0] == 5
+    assert all([i in range(5) for i in all_data[:,0]])
+
+def test_missing_numerical_data():
+    trainer = learn.Trainer(PATH.format("full"), null_values='?')
+    trainer.clean_data()
+    all_data = numpy.concatenate((trainer.train_data, trainer.test_data), axis=0)
+    index_in_all = numpy.where(all_data[:,0] == 2)[0]
+    index_in_train = numpy.where(trainer.train_data[:,0] == 2)
+    changed_value = all_data[index_in_all[0]][2]
+    origin_values = numpy.delete(trainer.train_data[:,2], index_in_train[0]) if len(index_in_train) == 1 else trainer.train_data[:,2]
+    assert changed_value == origin_values.mean()
+
+def test_one_hot_encoder():
+    trainer = learn.Trainer(PATH.format("full"), null_values='?')
+    categories = [pandas.unique(trainer.original_data[col].dropna()).tolist() for col in trainer.original_data[trainer.categorical_cols]]
+    assert sorted(categories[0]) == ['A', 'B', 'C']
+
+def test_select_label_column():
+    pass

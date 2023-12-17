@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import argparse
 import pandas
 
-from learn import MODEL_TYPES
+from mlcost.learn import MODEL_TYPES
 
 
 MARKERS = ['o', 'x', '+']

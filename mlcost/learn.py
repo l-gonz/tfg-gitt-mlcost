@@ -123,7 +123,7 @@ class Trainer():
     def clean_data(self, log_output=False):
         """Return a clean version of the input data.
         
-        Drop categorical features with more than ten categories and
+        Drop categorical features with more than MAX_CATEGORIES and
         translates the others with One-Hot encoding.
         Fill missing numerical values with the mean.
 
@@ -139,7 +139,7 @@ class Trainer():
 
         # Replace empty numerical items with mean and one-shot categorical columns
         numerical_transformer = SimpleImputer()
-        categorical_transformer = OneHotEncoder(handle_unknown='ignore')
+        categorical_transformer = OneHotEncoder(categories=[pd.unique(self.original_data[col].dropna()).tolist() for col in self.original_data[self.categorical_cols]])
         preprocessor = ColumnTransformer(
             transformers=[
                 ('num', numerical_transformer, self.numerical_cols),

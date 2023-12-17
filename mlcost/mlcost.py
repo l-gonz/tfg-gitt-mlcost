@@ -4,8 +4,8 @@ import logging
 from codecarbon import EmissionsTracker, OfflineEmissionsTracker
 from codecarbon.emissions_tracker import BaseEmissionsTracker
 
-import utils
-import learn
+from mlcost import utils
+from mlcost import learn
 
 def parse_args():
     """Parse the command-line arguments and return an argument object."""
