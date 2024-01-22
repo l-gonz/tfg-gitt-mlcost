@@ -1,3 +1,3 @@
-from mlcost import mlcost
+from mlcost import cli
 
-mlcost.main()
+cli.main()

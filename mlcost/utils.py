@@ -18,13 +18,6 @@ HOUR = 60*60
 MINUTE = 60
 
 
-class EmissionsOutput(BaseOutput):
-    """Output class for codecarbon's emission tracker that stores
-    all the data recorded."""
-    def out(self, emissions_data):
-        self.data = emissions_data
-
-
 def print_output(name, score, time, emissions, energy):
     """Print model scores to standard output."""
     print(name)

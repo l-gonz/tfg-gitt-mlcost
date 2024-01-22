@@ -60,8 +60,8 @@ class Trainer():
         
     def __read_data(self):
         if self.data_path:
-            data = pd.read_csv(self.data_path, **self.read_args)
-            return self.__split_labels(data)
+            self.raw_data = pd.read_csv(self.data_path, **self.read_args)
+            return self.__split_labels(self.raw_data)
         else:
             return self.DEFAULT_DATASET
 
@@ -176,9 +176,10 @@ class Trainer():
         # Number of rows before and after
 
         print("DATA PREPROCESSING SUMMARY")
-        print("Original data:\n")
-        print(self.original_data.describe())
+        # print("Original data:\n")
+        # print(self.original_data.describe())
         print(f"\nDiscarded features: {dropped_cols}")
+        print(f"Discarded rows for missing labels: {self.raw_data.shape[0] - self.original_data.shape[0]}")
         print(f"Trained numerical features: {self.numerical_cols}")
         print(f"Trained categorical features: {self.categorical_cols}")
         print("\nRemoved rows from missing categorical values - Train:",

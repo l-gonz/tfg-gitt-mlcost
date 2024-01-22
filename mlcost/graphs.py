@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse
 import pandas
 
 from mlcost.learn import MODEL_TYPES
@@ -12,13 +11,6 @@ MARKER_LABELS = ['Low', 'Mid', 'High']
 MEASUREMENTS = 10
 LOADS = len(MARKERS)
 N_MODELS = len(MODEL_TYPES)
-
-
-def parse_args():
-    """Parse the command-line arguments and return an argument object."""
-    parser = argparse.ArgumentParser(description='Tool to graph the data obtained from the main app')
-    parser.add_argument('-f', '--file', help='filepath to csv file that contains the data', required=True)
-    return parser.parse_args()
 
 
 def plot_accuracy_emissions(data: pandas.DataFrame, name):
@@ -58,9 +50,8 @@ def boxplot(data: pandas.DataFrame, name):
     plt.show()
 
 
-def main():
-    args = parse_args()
-    data = pandas.read_csv(args.file)
+def main(file):
+    data = pandas.read_csv(file)
     name = data.iloc[0,0].split('/')[-1].split('.')[0].capitalize()
     plot_accuracy_emissions(data, name)
     boxplot(data, name)

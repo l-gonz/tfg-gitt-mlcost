@@ -42,7 +42,7 @@ setup(
     python_requires='>=3.8, <4',
     entry_points={  # Optional
         'console_scripts': [
-            'mlcost=mlcost.mlcost:main',
+            'mlcost=mlcost.cli:main',
         ],
     },
 
