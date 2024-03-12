@@ -7,7 +7,7 @@ PATH = "data/test/{0}.csv"
 TEST_TYPES = ['int64','object','float64','float64']
 
 def test_read():
-    trainer = learn.Trainer(PATH.format("full"))
+    trainer = learn.Trainer(PATH.format("full"), null_values='?')
     assert trainer.original_data.shape == (6, 4)
     assert trainer.original_targets.shape == (6,)
 

@@ -5,31 +5,30 @@ from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, precision_recall_fscore_support
 
+from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import RidgeClassifier
 from sklearn.svm import SVC
-from sklearn.linear_model import SGDClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.neural_network import MLPClassifier
 
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 
 MODEL_TYPES = {
-    'Linear': RidgeClassifier(),
-    'SupportVector': SVC(),
-    'StochasticGradient': SGDClassifier(),
-    'NaiveBayes': GaussianNB(),
-    'DecisionTree': DecisionTreeClassifier(),
+    'Linear': LogisticRegression(),
     'Forest': RandomForestClassifier(),
-    'AdaBoost': AdaBoostClassifier()
+    'SupportVector': SVC(),
+    'Neighbors': KNeighborsClassifier(),
+    'NaiveBayes': GaussianNB(),
+    'GradientBoost': GradientBoostingClassifier(),
+    'Neural': MLPClassifier(),
 }
 
 class Trainer():
     DEFAULT_DATASET_NAME = "Iris"
-    DEFAULT_DATASET = load_iris(return_X_y=True, as_frame=True)
     TEST_SIZE = 0.2
     MAX_CATEGORIES = 10
 
@@ -63,7 +62,8 @@ class Trainer():
             self.raw_data = pd.read_csv(self.data_path, **self.read_args)
             return self.__split_labels(self.raw_data)
         else:
-            return self.DEFAULT_DATASET
+            self.raw_data = load_iris(return_X_y=False, as_frame=True).data
+            return load_iris(return_X_y=True, as_frame=True)
 
 
     def __split_test_data(self):
