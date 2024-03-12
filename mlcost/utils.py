@@ -59,11 +59,11 @@ def print_computer_info():
     print("Python " + platform.python_version())
     if platform.system() == "Linux":
         output = subprocess.check_output("cat /proc/cpuinfo", shell=True).strip().decode().split('\n')
-        cpu_info = {item[0]: item[1] for item in [re.split("\s*:\s*", line, maxsplit=2) for line in output if line]}
+        cpu_info = {item[0]: item[1] for item in [re.split(r"\s*:\s*", line, maxsplit=2) for line in output if line]}
         if 'model name' in cpu_info:
             print(cpu_info['model name'])
         output = subprocess.check_output("cat /proc/meminfo", shell=True).strip().decode().split('\n')
-        mem_info = {item[0]: item[1] for item in [re.split("\s*:\s*", line, maxsplit=2) for line in output if line]}
+        mem_info = {item[0]: item[1] for item in [re.split(r"\s*:\s*", line, maxsplit=2) for line in output if line]}
         if 'MemTotal' in mem_info:
             ram = mem_info['MemTotal'].split()
             count = 0

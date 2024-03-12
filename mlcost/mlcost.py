@@ -39,9 +39,9 @@ def main(dataset, labels, test, separator, codecarbon_file, online, log, no_head
             em_tracker = start_benchmark(online, bool(codecarbon_file), filename)
             predictions = trainer.train(model)
             emission = stop_benchmark(em_tracker)
-            score = trainer.score(predictions)
+            score = trainer.score(predictions, model)
 
-            utils.print_output(name, trainer.report, emission.duration, emission.emissions, emission.energy_consumed)
+            utils.print_output(name, score, emission.duration, emission.emissions, emission.energy_consumed)
 
             if log:
                 utils.log_to_file(trainer.name, score, emission, name)
