@@ -14,7 +14,7 @@ N_MODELS = len(MODEL_TYPES)
 
 
 def plot_accuracy_emissions(data: pandas.DataFrame, name):
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     scatter_mat = []
     for i, model in enumerate(MODEL_TYPES):
         scatters = []
