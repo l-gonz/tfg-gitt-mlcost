@@ -27,10 +27,10 @@ def stop_benchmark(em_tracker: BaseEmissionsTracker):
     return em_tracker.final_emissions_data
     
 
-def main(dataset, labels, test, separator, codecarbon_file, online, log, no_header):
+def main(dataset, labels, test, separator, codecarbon_file, online, log, no_header, openml):
     utils.print_computer_info()
 
-    trainer = learn.Trainer(dataset, test, labels, separator, no_header, null_values='?')
+    trainer = learn.Trainer(dataset, test, labels, separator, no_header, openml)
     trainer.clean_data(log_output=True)
     
     try:
@@ -47,7 +47,3 @@ def main(dataset, labels, test, separator, codecarbon_file, online, log, no_head
                 utils.log_to_file(trainer.name, score, emission, name)
     except KeyboardInterrupt:
         pass
-
-
-if __name__== "__main__":
-    main()

@@ -2,7 +2,7 @@ from numpy import std, mean, absolute
 import pandas as pd
 from pandas.core.frame import DataFrame
 
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris, fetch_openml
 from sklearn.model_selection import train_test_split, cross_validate, StratifiedKFold
 from sklearn.metrics import make_scorer, precision_score, recall_score, f1_score
 from sklearn.metrics import balanced_accuracy_score, classification_report, precision_recall_fscore_support
@@ -22,7 +22,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.pipeline import Pipeline
 
 MODEL_TYPES = {
-    'Linear': LogisticRegression(),
+    'Linear': LogisticRegression(max_iter=2000),
     'Forest': RandomForestClassifier(),
     'SupportVector': SVC(),
     'Neighbors': KNeighborsClassifier(),
@@ -36,9 +36,11 @@ class Trainer():
     TEST_SIZE = 0.2
     MAX_CATEGORIES = 10
     RANDOM_STATE = 5
+    CROSS_VALIDATE_SCORES = False
+    CROSS_VALIDATE_FOLDS = 5
 
 
-    def __init__(self, data_path, test_path=None, target_label=None, separator=',', no_header=False, null_values=None):
+    def __init__(self, data_path, test_path=None, target_label=None, separator=',', no_header=False, openml=False, null_values='?'):
         if data_path:
             self.name = data_path.split('/')[-1].split('.')[0].capitalize()
         else:
@@ -47,7 +49,7 @@ class Trainer():
         self.target_label = target_label
         self.read_args = self.__get_read_args(separator, no_header, null_values)
 
-        self.original_data, self.original_targets = self.__read_data(data_path)
+        self.original_data, self.original_targets = self.__read_data(data_path, openml)
         self.__identify_columns()
         self.__drop_missing_values(self.categorical_cols)
 
@@ -68,8 +70,12 @@ class Trainer():
         return args
 
         
-    def __read_data(self, data_path):
-        if data_path:
+    def __read_data(self, data_path, openml):
+        if openml:
+            X, y = fetch_openml(data_path, return_X_y=True, as_frame=True)
+            self.raw_data = pd.concat((X, y), axis=1, join='inner')
+            return X, y
+        elif data_path:
             self.raw_data = pd.read_csv(data_path, **self.read_args)
             return self.__split_labels(self.raw_data)
         else:
@@ -163,29 +169,31 @@ class Trainer():
         self.report = classification_report(self.test_target, predictions)
         p, r, f, _ = precision_recall_fscore_support(self.test_target, predictions, average='weighted')
 
-        
-        cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=self.RANDOM_STATE)
-        scores = cross_validate(Pipeline(steps=[('prep', clone(self.preprocessor)), ('model', clone(model))]),
-                                 self.original_data, self.original_targets, 
-                                 scoring = {
-                                    'accuracy': make_scorer(balanced_accuracy_score),
-                                    'precision': make_scorer(precision_score, average='weighted'),
-                                    'recall': make_scorer(recall_score, average='weighted'),
-                                    'f1_score': make_scorer(f1_score, average='weighted')
-                                 },
-                                 cv=cv, n_jobs=-1)
-
-        return {
+        scores = {
             "one-time-accuracy": balanced_accuracy_score(self.test_target, predictions),
             "one-time-precision": p,
             "one-time-fscore": f,
-            "one-time-recall": r,
-            "cv-accuracy": f"{absolute(mean(scores['test_accuracy'])):.3f} ({absolute(std(scores['test_accuracy'])):.3f})",
-            "cv-precision": f"{absolute(mean(scores['test_precision'])):.3f} ({absolute(std(scores['test_precision'])):.3f})",
-            "cv-recall": f"{absolute(mean(scores['test_recall'])):.3f} ({absolute(std(scores['test_recall'])):.3f})",
-            "cv-f1-score": f"{absolute(mean(scores['test_f1_score'])):.3f} ({absolute(std(scores['test_f1_score'])):.3f})",
-            "total_time": sum(scores['fit_time']) + sum(scores['score_time'])
+            "one-time-recall": r
         }
+        
+        if (self.CROSS_VALIDATE_SCORES):
+            cv = StratifiedKFold(n_splits=self.CROSS_VALIDATE_FOLDS, shuffle=True, random_state=self.RANDOM_STATE)
+            cv_scores = cross_validate(Pipeline(steps=[('prep', clone(self.preprocessor)), ('model', clone(model))]),
+                                    self.original_data, self.original_targets, 
+                                    scoring = {
+                                        'accuracy': make_scorer(balanced_accuracy_score),
+                                        'precision': make_scorer(precision_score, average='weighted'),
+                                        'recall': make_scorer(recall_score, average='weighted'),
+                                        'f1_score': make_scorer(f1_score, average='weighted')
+                                    },
+                                    cv=cv, n_jobs=-1)
+            scores["cv-accuracy"] = f"{absolute(mean(cv_scores['test_accuracy'])):.3f} ({absolute(std(cv_scores['test_accuracy'])):.3f})"
+            scores["cv-precision"] = f"{absolute(mean(cv_scores['test_precision'])):.3f} ({absolute(std(cv_scores['test_precision'])):.3f})"
+            scores["cv-recall"] = f"{absolute(mean(cv_scores['test_recall'])):.3f} ({absolute(std(cv_scores['test_recall'])):.3f})"
+            scores["cv-f1-score"] = f"{absolute(mean(cv_scores['test_f1_score'])):.3f} ({absolute(std(cv_scores['test_f1_score'])):.3f})"
+            scores["total_time"] = sum(cv_scores['fit_time']) + sum(cv_scores['score_time'])
+
+        return scores
 
     
     def print_summary(self, original_size):
