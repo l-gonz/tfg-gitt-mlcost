@@ -1,4 +1,3 @@
-from numpy import std, mean, absolute
 import pandas as pd
 from pandas.core.frame import DataFrame
 
@@ -36,11 +35,9 @@ class Trainer():
     TEST_SIZE = 0.2
     MAX_CATEGORIES = 10
     RANDOM_STATE = 5
-    CROSS_VALIDATE_SCORES = False
-    CROSS_VALIDATE_FOLDS = 5
 
 
-    def __init__(self, data_path, test_path=None, target_label=None, separator=',', no_header=False, openml=False, null_values='?'):
+    def __init__(self, data_path, test_path=None, target_label=None, cross_validate=1, separator=',', no_header=False, openml=False, null_values='?'):
         if data_path:
             self.name = data_path.split('/')[-1].split('.')[0].capitalize()
         else:
@@ -48,6 +45,7 @@ class Trainer():
 
         self.target_label = target_label
         self.read_args = self.__get_read_args(separator, no_header, null_values)
+        self.cross_validate_folds = cross_validate
 
         self.original_data, self.original_targets = self.__read_data(data_path, openml)
         self.__identify_columns()
@@ -164,7 +162,7 @@ class Trainer():
         return model.predict(self.test_data)
 
 
-    def score(self, predictions, model) -> float:
+    def score(self, predictions):
         """Return several classification metrics comparing the test set labels vs the predicted labels."""
         self.report = classification_report(self.test_target, predictions)
         p, r, f, _ = precision_recall_fscore_support(self.test_target, predictions, average='weighted')
@@ -175,26 +173,22 @@ class Trainer():
             "one-time-fscore": f,
             "one-time-recall": r
         }
-        
-        if (self.CROSS_VALIDATE_SCORES):
-            cv = StratifiedKFold(n_splits=self.CROSS_VALIDATE_FOLDS, shuffle=True, random_state=self.RANDOM_STATE)
-            cv_scores = cross_validate(Pipeline(steps=[('prep', clone(self.preprocessor)), ('model', clone(model))]),
-                                    self.original_data, self.original_targets, 
-                                    scoring = {
-                                        'accuracy': make_scorer(balanced_accuracy_score),
-                                        'precision': make_scorer(precision_score, average='weighted'),
-                                        'recall': make_scorer(recall_score, average='weighted'),
-                                        'f1_score': make_scorer(f1_score, average='weighted')
-                                    },
-                                    cv=cv, n_jobs=-1)
-            scores["cv-accuracy"] = f"{absolute(mean(cv_scores['test_accuracy'])):.3f} ({absolute(std(cv_scores['test_accuracy'])):.3f})"
-            scores["cv-precision"] = f"{absolute(mean(cv_scores['test_precision'])):.3f} ({absolute(std(cv_scores['test_precision'])):.3f})"
-            scores["cv-recall"] = f"{absolute(mean(cv_scores['test_recall'])):.3f} ({absolute(std(cv_scores['test_recall'])):.3f})"
-            scores["cv-f1-score"] = f"{absolute(mean(cv_scores['test_f1_score'])):.3f} ({absolute(std(cv_scores['test_f1_score'])):.3f})"
-            scores["total_time"] = sum(cv_scores['fit_time']) + sum(cv_scores['score_time'])
 
         return scores
+    
+    def cross_score(self, model):
+        fold = StratifiedKFold(n_splits=self.cross_validate_folds, shuffle=True, random_state=self.RANDOM_STATE)
+        cv_scores = cross_validate(Pipeline(steps=[('prep', clone(self.preprocessor)), ('model', clone(model))]),
+                                self.original_data, self.original_targets,
+                                scoring = {
+                                    'accuracy': make_scorer(balanced_accuracy_score),
+                                    'precision': make_scorer(precision_score, average='weighted'),
+                                    'recall': make_scorer(recall_score, average='weighted'),
+                                    'f1_score': make_scorer(f1_score, average='weighted')
+                                },
+                                cv=fold, n_jobs=None)
 
+        return cv_scores
     
     def print_summary(self, original_size):
         # Print number of features per type before and after

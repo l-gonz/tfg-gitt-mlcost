@@ -16,12 +16,13 @@ def main():
 @click.option('-t', '--test', help='filepath to testset, if none will get split testset from dataset', type=click.Path(exists=True, dir_okay=False))
 @click.option('-s', '--separator', default=",", help='separator, defaults to a comma (no spaces)')
 @click.option('-f', '--codecarbon-file', help="filename for default output from codecarbon, can be used with codecarbon's own visualization tool")
+@click.option('-cv', '--cross-validate', help="cross validate the model, specify the number of folds (default is 1, no cross validation)", type=int, default=1)
 @click.option('--online', is_flag='True', help='use Codecarbon Emission Tracker in online mode')
 @click.option('--log', is_flag='True', help='output to additional csv file with whole experiment data')
 @click.option('--no-header', is_flag='True', help='do not consider the first row in the data to be the header')
 @click.option('--openml', is_flag='True', help='fetch dataset from openml')
-def measure(dataset, labels, test, separator, codecarbon_file, online, log, no_header, openml):
-    mlcost.main(dataset, labels, test, separator, codecarbon_file, online, log, no_header, openml)
+def measure(dataset, labels, test, separator, codecarbon_file, cross_validate, online, log, no_header, openml):
+    mlcost.main(dataset, labels, test, separator, codecarbon_file, cross_validate, online, log, no_header, openml)
 
 
 @main.command()

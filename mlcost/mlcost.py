@@ -27,19 +27,23 @@ def stop_benchmark(em_tracker: BaseEmissionsTracker):
     return em_tracker.final_emissions_data
     
 
-def main(dataset, labels, test, separator, codecarbon_file, online, log, no_header, openml):
+def main(dataset, labels, test, separator, codecarbon_file, cross_validate, online, log, no_header, openml):
     utils.print_computer_info()
 
-    trainer = learn.Trainer(dataset, test, labels, separator, no_header, openml)
+    trainer = learn.Trainer(dataset, test, labels, cross_validate, separator, no_header, openml)
     trainer.clean_data(log_output=True)
     
     try:
         for name, model in learn.MODEL_TYPES.items():
             filename = "_".join([codecarbon_file, name]) if codecarbon_file else ""
             em_tracker = start_benchmark(online, bool(codecarbon_file), filename)
-            predictions = trainer.train(model)
-            emission = stop_benchmark(em_tracker)
-            score = trainer.score(predictions, model)
+            if (cross_validate <= 1):
+                predictions = trainer.train(model)
+                emission = stop_benchmark(em_tracker)
+                score = trainer.score(predictions)
+            else:
+                score = trainer.cross_score(model)
+                emission = stop_benchmark(em_tracker)
 
             utils.print_output(name, score, emission.duration, emission.emissions, emission.energy_consumed)
 

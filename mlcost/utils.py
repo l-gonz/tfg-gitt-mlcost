@@ -5,7 +5,7 @@ import os
 import psutil
 import math
 
-from codecarbon.output import BaseOutput
+from numpy import std, mean, absolute, ndarray
 
 
 FILE_NAME = 'output.csv'
@@ -22,7 +22,15 @@ def print_output(name, score, time, emissions, energy):
     """Print model scores to standard output."""
     print(name)
     if isinstance(score, float): 
-        print(f'Accuracy: {score:.2%}')
+        print(f'Score: {score:.2%}')
+    elif isinstance(score, dict):
+        for k, v in score.items():
+            if isinstance(v, (list, ndarray)):
+                print(f"{k}: {absolute(mean(v)):.3f} ({absolute(std(v)):.3f})")
+            elif isinstance(v, float): 
+                print(f'{k}: {v:.2%}')
+            else:
+                print(f"{k}: {v}")
     else:
         print(f"Report:\n{score}")
 
