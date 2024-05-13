@@ -5,13 +5,12 @@ import os
 import psutil
 import math
 
-from codecarbon.output import BaseOutput
+from numpy import std, mean, absolute, ndarray
 
 
 FILE_NAME = 'output.csv'
 
-INFO_COLUMN_NAMES = ["dataset", "cpu_load", ""]
-MODEL_COLUMN_NAMES = ["accuracy", "time", "emissions", "energy_consumed"]
+COLUMN_NAMES = ["dataset", "model", "cpu_load", "accuracy", "precision", "f-beta", "recall", "time", "emissions", "energy_consumed"]
 
 UNITS = ["k", "", "m", "μ", "n"]
 DAY = 24*60*60
@@ -19,17 +18,21 @@ HOUR = 60*60
 MINUTE = 60
 
 
-class EmissionsOutput(BaseOutput):
-    """Output class for codecarbon's emission tracker that stores
-    all the data recorded."""
-    def out(self, emissions_data):
-        self.data = emissions_data
-
-
 def print_output(name, score, time, emissions, energy):
     """Print model scores to standard output."""
     print(name)
-    print(f'Accuracy: {score:.2%}')
+    if isinstance(score, float): 
+        print(f'Score: {score:.2%}')
+    elif isinstance(score, dict):
+        for k, v in score.items():
+            if isinstance(v, (list, ndarray)):
+                print(f"{k}: {absolute(mean(v)):.3f} ({absolute(std(v)):.3f})")
+            elif isinstance(v, float): 
+                print(f'{k}: {v:.2%}')
+            else:
+                print(f"{k}: {v}")
+    else:
+        print(f"Report:\n{score}")
 
     days, s = divmod(time, DAY)
     hours, s = divmod(s, HOUR)
@@ -64,11 +67,11 @@ def print_computer_info():
     print("Python " + platform.python_version())
     if platform.system() == "Linux":
         output = subprocess.check_output("cat /proc/cpuinfo", shell=True).strip().decode().split('\n')
-        cpu_info = {item[0]: item[1] for item in [re.split("\s*:\s*", line, maxsplit=2) for line in output if line]}
+        cpu_info = {item[0]: item[1] for item in [re.split(r"\s*:\s*", line, maxsplit=2) for line in output if line]}
         if 'model name' in cpu_info:
             print(cpu_info['model name'])
         output = subprocess.check_output("cat /proc/meminfo", shell=True).strip().decode().split('\n')
-        mem_info = {item[0]: item[1] for item in [re.split("\s*:\s*", line, maxsplit=2) for line in output if line]}
+        mem_info = {item[0]: item[1] for item in [re.split(r"\s*:\s*", line, maxsplit=2) for line in output if line]}
         if 'MemTotal' in mem_info:
             ram = mem_info['MemTotal'].split()
             count = 0
@@ -78,24 +81,16 @@ def print_computer_info():
             print("Memory: " + str("%.2f" % round(ram[0],2)) + " " + ("kB" if count == 0 else "MB" if count == 1 else "GB"))
     print("Start load: " + f"{psutil.getloadavg()[0] / psutil.cpu_count() * 100:.2f}%")
     print("---------------------------")
-    
 
 
-def get_column_names(model_name):
-    """Return column names for the given model as comma-separated values."""
-    return ",".join([model_name + "_" + column for column in MODEL_COLUMN_NAMES])
-
-
-def log_to_file(dataset, scores, emissions, models):
+def log_to_file(dataset, score, emission, model):
     """Output models and scores to a csv file."""
     if not os.path.exists(FILE_NAME):
         with open(FILE_NAME, 'w') as file:
-            file.write(','.join(INFO_COLUMN_NAMES))
-            file.write(','.join([get_column_names(name) for name in models.keys()]))
+            file.write(','.join(COLUMN_NAMES))
 
     with open(FILE_NAME, 'a') as file:
-        file.write('\n')
-        file.write((dataset if dataset else "iris") + ',')
-        file.write(str(psutil.getloadavg()[0] / psutil.cpu_count() * 100) + ',')
-        file.write(','.join([f"{scores[name]},{emissions[name].duration},{emissions[name].emissions},{emissions[name].energy_consumed}" 
-            for name in models.keys()]))
+        file.write(f"\n{dataset},{model},")
+        file.write(str(psutil.getloadavg()[0] / psutil.cpu_count() * 100))
+        file.write("," + ",".join(str("%.4f" % score[key]) for key in COLUMN_NAMES[3:7]))
+        file.write(f",{emission.duration},{emission.emissions},{emission.energy_consumed}")
