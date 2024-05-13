@@ -31,7 +31,6 @@ setup(
         'Topic :: Software Development :: Build Tools',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         "Programming Language :: Python :: 3.10",
         'Programming Language :: Python :: 3 :: Only',
@@ -39,7 +38,7 @@ setup(
 
     keywords='machine-learning',  # Optional
     packages=find_packages(exclude=['test', 'codecarbon']),  # Required
-    python_requires='>=3.8, <4',
+    python_requires='>=3.9, <4',
     entry_points={  # Optional
         'console_scripts': [
             'mlcost=mlcost.cli:main',
