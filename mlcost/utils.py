@@ -10,7 +10,9 @@ from numpy import std, mean, absolute, ndarray
 
 FILE_NAME = 'output.csv'
 
-COLUMN_NAMES = ["dataset", "model", "cpu_load", "accuracy", "precision", "f-beta", "recall", "time", "emissions", "energy_consumed"]
+GENERAL_COLS = ["dataset", "model", "cpu_load"]
+SCORE_COLS = ['n_samples', 'test_accuracy', 'test_precision', 'test_f1_score', 'test_recall', 'fit_time']
+EMISSION_COLS = ["emission_time", "emissions", "energy_consumed"]
 
 UNITS = ["k", "", "m", "μ", "n"]
 DAY = 24*60*60
@@ -87,10 +89,18 @@ def log_to_file(dataset, score, emission, model):
     """Output models and scores to a csv file."""
     if not os.path.exists(FILE_NAME):
         with open(FILE_NAME, 'w') as file:
-            file.write(','.join(COLUMN_NAMES))
+            file.write(f"{','.join(GENERAL_COLS)},{','.join(SCORE_COLS)},{','.join(EMISSION_COLS)}")
 
     with open(FILE_NAME, 'a') as file:
-        file.write(f"\n{dataset},{model},")
-        file.write(str(psutil.getloadavg()[0] / psutil.cpu_count() * 100))
-        file.write("," + ",".join(str("%.4f" % score[key]) for key in COLUMN_NAMES[3:7]))
-        file.write(f",{emission.duration},{emission.emissions},{emission.energy_consumed}")
+        if isinstance(score[SCORE_COLS[0]], (list, ndarray)):
+            for i in range(len(score[SCORE_COLS[0]])):
+                __write_score_line(file, dataset, {k: score[k][i] for k in score}, emission, model)
+        else:
+            __write_score_line(file, dataset, score, emission, model)
+
+
+def __write_score_line(file, dataset, score, emission, model):
+    file.write(f"\n{dataset},{model},")
+    file.write(str(psutil.getloadavg()[0] / psutil.cpu_count() * 100))
+    file.write("," + ",".join(str(f"{score[key]:.6f}") for key in SCORE_COLS))
+    file.write(f",{emission.duration:.6e},{emission.emissions:.6e},{emission.energy_consumed:.6e}")

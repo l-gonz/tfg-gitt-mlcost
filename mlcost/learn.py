@@ -127,7 +127,7 @@ class Trainer():
         self.numerical_cols = [col for col in self.original_data if 
                     self.original_data[col].dtype in ['int64', 'float64']]
         self.categorical_cols = [col for col in self.original_data if
-                    self.original_data[col].nunique() < self.MAX_CATEGORIES and self.original_data[col].dtype == "object"]
+                    self.original_data[col].nunique() < self.MAX_CATEGORIES and self.original_data[col].dtype in ["object", "category"]]
 
 
     def clean_data(self, log_output=False):
@@ -168,10 +168,11 @@ class Trainer():
         p, r, f, _ = precision_recall_fscore_support(self.test_target, predictions, average='weighted')
 
         scores = {
-            "one-time-accuracy": balanced_accuracy_score(self.test_target, predictions),
-            "one-time-precision": p,
-            "one-time-fscore": f,
-            "one-time-recall": r
+            "test_accuracy": balanced_accuracy_score(self.test_target, predictions),
+            "test_precision": p,
+            "test_f1_score": f,
+            "test_recall": r,
+            "n_samples": self.original_data.shape[0]
         }
 
         return scores
@@ -187,6 +188,7 @@ class Trainer():
                                     'f1_score': make_scorer(f1_score, average='weighted')
                                 },
                                 cv=fold, n_jobs=None)
+        cv_scores["n_samples"] = [self.original_data.shape[0]] * len(cv_scores["fit_time"])
 
         return cv_scores
     
@@ -198,7 +200,7 @@ class Trainer():
         print("DATA PREPROCESSING SUMMARY")
         # print("Original data:\n")
         # print(self.original_data.describe())
-        print(f"\nDiscarded features: {original_size[0][1] - self.train_data.shape[1]}")
+        print(f"\nDiscarded features: {len([col for col in self.original_data if col not in self.numerical_cols + self.categorical_cols])}")
         print(f"Discarded rows for missing labels: {self.raw_data.shape[0] - self.original_data.shape[0]}")
         print(f"Trained numerical features: {self.numerical_cols}")
         print(f"Trained categorical features: {self.categorical_cols}")

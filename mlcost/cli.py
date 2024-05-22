@@ -28,7 +28,7 @@ def measure(dataset, labels, test, separator, codecarbon_file, cross_validate, o
 @main.command()
 # parser = argparse.ArgumentParser(description='Tool to graph the data obtained from the main app')
 @click.option('-f', '--file', help='filepath to csv file that contains the data', required=True, type=click.Path(dir_okay=False))
-def show(file):
+def plot(file):
     graphs.main(file)
 
 

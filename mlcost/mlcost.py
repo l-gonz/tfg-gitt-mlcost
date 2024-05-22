@@ -1,5 +1,3 @@
-import logging
-
 from codecarbon import EmissionsTracker, OfflineEmissionsTracker
 from codecarbon.emissions_tracker import BaseEmissionsTracker
 
@@ -41,6 +39,7 @@ def main(dataset, labels, test, separator, codecarbon_file, cross_validate, onli
                 predictions = trainer.train(model)
                 emission = stop_benchmark(em_tracker)
                 score = trainer.score(predictions)
+                score["fit_time"] = emission.duration
             else:
                 score = trainer.cross_score(model)
                 emission = stop_benchmark(em_tracker)
