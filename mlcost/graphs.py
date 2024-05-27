@@ -49,7 +49,7 @@ def boxplot(data: pandas.DataFrame, name):
     ax.set_title(name)
     plt.show(block=False)
 
-def scatter_four_dimensions(data, y_axis, x_axis, main_category, sec_category, xscale="linear"):
+def scatter_four_dimensions(data, x_axis, y_axis, main_category, sec_category, xscale="linear"):
     main_cat_names = data[main_category].unique()
     sec_cat_names = data[sec_category].unique()
     scatter_mat = []
@@ -68,7 +68,7 @@ def scatter_four_dimensions(data, y_axis, x_axis, main_category, sec_category, x
 
     legend1 = ax.legend([l[0] for l in scatter_mat], main_cat_names, loc='lower right', title=main_category)
     ax.add_artist(legend1)
-    ax.legend(scatter_mat[0], sec_cat_names, loc='lower right', bbox_to_anchor=(0.75, 0), title=sec_category)
+    ax.legend(scatter_mat[0], sec_cat_names, loc='lower right', bbox_to_anchor=(0.85, 0), title=sec_category)
     ax.set_title("Plot")
     ax.set_xscale(xscale)
     ax.set_xlabel(x_axis)
@@ -76,7 +76,7 @@ def scatter_four_dimensions(data, y_axis, x_axis, main_category, sec_category, x
     plt.show(block=False)
 
 
-def scatter_three_dimensions(data, y_axis, x_axis, category):
+def scatter_three_dimensions(data, x_axis, y_axis, category):
     category_names = data[category].unique()
     _, ax = plt.subplots()
 
@@ -96,16 +96,18 @@ def scatter_three_dimensions(data, y_axis, x_axis, category):
     plt.show(block=False)
 
 
-def plot_bars(data: pandas.DataFrame, y_axis, x_axis, category):
+def plot_bars(data: pandas.DataFrame, x_axis, y_axis, category):
     ax = data.pivot(index=x_axis, columns=category, values=y_axis).plot(kind='bar', rot=0)
     ax.set_ylim(0.5, 1)
     ax.set_title("Plot")
     ax.set_xlabel(x_axis)
     ax.set_ylabel(y_axis)
-    plt.show(block=False)
+    plt.show(block=True)
 
-def plot_lines(data: pandas.DataFrame, y_axis, x_axis, category, xcale="linear", yscale="linear"):
-    ax = data.pivot(index=x_axis, columns=category, values=y_axis).plot(marker='o')
+def plot_lines(data: pandas.DataFrame, x_axis, y_axis, category, xcale="linear", yscale="linear"):
+    data[category] = data[category].astype(pandas.CategoricalDtype(MODEL_TYPES.keys(), ordered = True))
+    data_ref = data.pivot(index=x_axis, columns=category, values=y_axis)
+    ax = data_ref.plot(marker='o')
     ax.set_title("Plot")
     ax.set_xlabel(x_axis)
     ax.set_ylabel(y_axis)
@@ -116,6 +118,12 @@ def plot_lines(data: pandas.DataFrame, y_axis, x_axis, category, xcale="linear",
 
 def __add_derived_columns(data):
     data["fit_emissions"] = data["emissions"] / data["emission_time"] * data["fit_time"]
+
+def include(matrix, column, *names):
+    return matrix[matrix[column].isin(names)]
+
+def exclude(matrix, column, *names):
+    return matrix[~matrix[column].isin(names)]
 
 
 def main(file):
@@ -128,18 +136,17 @@ def main(file):
     # boxplot(data, name)
 
     
-    # scatter_four_dimensions(average_data, "test_f1_score", "fit_emissions", "model", "dataset", "log")
-    # scatter_three_dimensions(data[data["dataset"] == "Iris"], "test_f1_score", "fit_emissions", "model")
-    # scatter_three_dimensions(data[data["dataset"] == "Ionosphere"], "test_f1_score", "fit_emissions", "model")
-    # scatter_three_dimensions(data[data["dataset"] == "Banknote"], "test_f1_score", "fit_emissions", "model")
-    # plot_bars(average_data, "test_f1_score", "model", "dataset")
-    # plot_bars(average_data, "test_f1_score", "dataset", "model")
+    # scatter_four_dimensions(average_data, "fit_emissions", "test_f1_score", "model", "dataset", "log")
+    # scatter_three_dimensions(data[data["dataset"] == "Iris"], "fit_emissions", "test_f1_score", "model")
+    # scatter_three_dimensions(data[data["dataset"] == "Ionosphere"], "fit_emissions", "test_f1_score", "model")
+    # scatter_three_dimensions(data[data["dataset"] == "Banknote"], "fit_emissions", "test_f1_score", "model")
+    # plot_bars(average_data, "model", "test_f1_score", "dataset")
+    # plot_bars(average_data, "dataset", "test_f1_score", "model")
 
-    # ------
-    # plot_lines(average_data[average_data["dataset"] != "Optdigits"], "fit_emissions", "n_samples", "model", "log", "log")
-    # plot_lines(average_data[average_data["dataset"] != "Optdigits"], "test_f1_score", "n_samples", "model")
-    # scatter_four_dimensions(data, "test_f1_score", "fit_emissions", "model", "dataset", "log")
-    # scatter_four_dimensions(data, "test_f1_score", "fit_emissions", "dataset", "model", "log")
+    # ------ Part 1 -------
+    # plot_lines(average_data, "n_samples", "fit_emissions", "model", "log", "log")
+    # plot_lines(average_data, "n_samples", "test_f1_score", "model", "log")
+    # scatter_four_dimensions(data, "fit_emissions", "test_f1_score", "model", "dataset", "log")
 
     key_pressed = False
     while not key_pressed:

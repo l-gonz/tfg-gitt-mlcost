@@ -30,7 +30,10 @@ def print_output(name, score, time, emissions, energy):
             if isinstance(v, (list, ndarray)):
                 print(f"{k}: {absolute(mean(v)):.3f} ({absolute(std(v)):.3f})")
             elif isinstance(v, float): 
-                print(f'{k}: {v:.2%}')
+                if v < 0:
+                    print(f'{k}: {v:.2%}')
+                else:
+                    print(f'{k}: {v:.2f}')
             else:
                 print(f"{k}: {v}")
     else:
