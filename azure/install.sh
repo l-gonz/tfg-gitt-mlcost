@@ -6,11 +6,11 @@ sudo apt install -y python3.12
 sudo apt install -y python3.12-venv
 
 cd ~
-git config --global user.email "placeholder@email.com"
-git config --global user.name "azure-machine"
-git clone https://azure-machine:${github-token}@github.com/l-gonz/tfg-gitt-mlcost.git --branch=azure
+git clone https://azure-machine:${github-token}@github.com/l-gonz/tfg-gitt-mlcost.git --branch=azure azure-test
 cd tfg-gitt-mlcost
 git checkout azure
+git config --local user.email "placeholder@email.com"
+git config --local user.name "azure-machine"
 
 python3.12 -m venv .venv
 source .venv/bin/activate
