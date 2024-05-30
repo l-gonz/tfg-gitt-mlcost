@@ -4,11 +4,12 @@
 # git clone https://github.com/l-gonz/tfg-gitt-mlcost.git --branch=azure tfg-gitt-mlcost-azure
 
 # Installation
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+az login
+
 sudo add-apt-repository ppa:deadsnakes/ppa -y
 sudo apt install -y python3.12
 sudo apt install -y python3.12-venv
-curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-az login
 
 ghtoken=$(az keyvault secret show -n Github-Token --vault-name kv-mlcost --query "value" -o tsv)
 cd ~/tfg-gitt-mlcost-azure
@@ -45,7 +46,8 @@ python3.12 -m mlcost measure --openml -d covertype --log -m NaiveBayes >> "azure
 python3.12 -m mlcost measure --openml -d covertype --log -m GradientBoost >> "azure/covertype${timestamp}.log"
 python3.12 -m mlcost measure --openml -d covertype --log -m Neural >> "azure/covertype${timestamp}.log"
 echo >> "azure/covertype${timestamp}.log"
-cat output.csv >> azure/output${timestamp}.csv
+tail -n +2 output.csv >> azure/output${timestamp}.csv
+rm output.csv
 commit covertype
 
 python3.12 -m mlcost measure --openml -d poker-hand --log -m Linear > "azure/poker${timestamp}.log"
@@ -56,5 +58,6 @@ python3.12 -m mlcost measure --openml -d poker-hand --log -m NaiveBayes >> "azur
 python3.12 -m mlcost measure --openml -d poker-hand --log -m GradientBoost >> "azure/poker${timestamp}.log"
 python3.12 -m mlcost measure --openml -d poker-hand --log -m Neural >> "azure/poker${timestamp}.log"
 echo >> "azure/poker${timestamp}.log"
-cat output.csv >> azure/output${timestamp}.csv
+tail -n +2 output.csv >> azure/output${timestamp}.csv
+rm output.csv
 commit poker-hand
