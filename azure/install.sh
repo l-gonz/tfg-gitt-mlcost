@@ -1,13 +1,17 @@
 #!/bin/bash
 
+# Run to get this script
+# git clone https://github.com/l-gonz/tfg-gitt-mlcost.git --branch=azure tfg-gitt-mlcost-azure
+
 # Installation
-sudo add-apt-repository ppa:deadsnakes/ppa
+sudo add-apt-repository ppa:deadsnakes/ppa -y
 sudo apt install -y python3.12
 sudo apt install -y python3.12-venv
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+az login
 
-ghtoken=$(az keyvault secret show -n Github-Token --vault-name kv-mlcost --query "value")
-git clone https://github.com/l-gonz/tfg-gitt-mlcost.git --branch=azure tfg-gitt-mlcost-azure
-cd tfg-gitt-mlcost-azure
+ghtoken=$(az keyvault secret show -n Github-Token --vault-name kv-mlcost --query "value" -o tsv)
+cd ~/tfg-gitt-mlcost-azure
 git remote set-url origin https://azure-machine:${ghtoken}@github.com/l-gonz/tfg-gitt-mlcost.git
 git config --local user.email "azure.machine@email.com"
 git config --local user.name "azure-machine"
@@ -28,8 +32,9 @@ $(cat /proc/meminfo | grep 'MemTotal')"
 
 # Models
 timestamp=$(date +%F_%T)
-#python3.12 -m mlcost measure --openml -d electricity --log > "azure/electricity${timestamp}.log"
-#mv output.csv azure/output${timestamp}.csv
+python3.12 -m mlcost measure --openml -d electricity --log > "azure/electricity${timestamp}.log"
+echo > "azure/electricity${timestamp}.log"
+mv output.csv azure/output${timestamp}.csv
 commit electricity
 
 python3.12 -m mlcost measure --openml -d covertype --log -m Linear > "azure/covertype${timestamp}.log"
@@ -39,6 +44,7 @@ python3.12 -m mlcost measure --openml -d covertype --log -m Neighbors >> "azure/
 python3.12 -m mlcost measure --openml -d covertype --log -m NaiveBayes >> "azure/covertype${timestamp}.log"
 python3.12 -m mlcost measure --openml -d covertype --log -m GradientBoost >> "azure/covertype${timestamp}.log"
 python3.12 -m mlcost measure --openml -d covertype --log -m Neural >> "azure/covertype${timestamp}.log"
+echo >> "azure/covertype${timestamp}.log"
 cat output.csv >> azure/output${timestamp}.csv
 commit covertype
 
@@ -49,5 +55,6 @@ python3.12 -m mlcost measure --openml -d poker-hand --log -m Neighbors >> "azure
 python3.12 -m mlcost measure --openml -d poker-hand --log -m NaiveBayes >> "azure/poker${timestamp}.log"
 python3.12 -m mlcost measure --openml -d poker-hand --log -m GradientBoost >> "azure/poker${timestamp}.log"
 python3.12 -m mlcost measure --openml -d poker-hand --log -m Neural >> "azure/poker${timestamp}.log"
+echo >> "azure/poker${timestamp}.log"
 cat output.csv >> azure/output${timestamp}.csv
 commit poker-hand

@@ -21,13 +21,13 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.pipeline import Pipeline
 
 MODEL_TYPES = {
-    'Linear': LogisticRegression(max_iter=2000, verbose=1),
-    'Forest': RandomForestClassifier(verbose=1),
-    'SupportVector': SVC(verbose=1),
+    'Linear': LogisticRegression(max_iter=2000),
+    'Forest': RandomForestClassifier(),
+    'SupportVector': SVC(),
     'Neighbors': KNeighborsClassifier(),
     'NaiveBayes': GaussianNB(),
-    'GradientBoost': GradientBoostingClassifier(verbose=1),
-    'Neural': MLPClassifier(max_iter=5000, verbose=1),
+    'GradientBoost': GradientBoostingClassifier(),
+    'Neural': MLPClassifier(max_iter=5000),
 }
 
 class Trainer():
