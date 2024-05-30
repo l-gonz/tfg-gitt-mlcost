@@ -28,8 +28,8 @@ $(cat /proc/meminfo | grep 'MemTotal')"
 
 # Models
 timestamp=$(date +%F_%T)
-python3.12 -m mlcost measure --openml -d electricity --log > "azure/electricity${timestamp}.log"
-mv output.csv azure/output${timestamp}.csv
+#python3.12 -m mlcost measure --openml -d electricity --log > "azure/electricity${timestamp}.log"
+#mv output.csv azure/output${timestamp}.csv
 commit electricity
 
 python3.12 -m mlcost measure --openml -d covertype --log -m Linear > "azure/covertype${timestamp}.log"
