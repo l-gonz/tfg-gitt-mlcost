@@ -52,7 +52,6 @@ python3.12 -m mlcost measure --openml -d covertype --log -m Forest >> "azure/${t
 python3.12 -m mlcost measure --openml -d covertype --log -m Neighbors >> "azure/${timestamp}_covertype.log"
 python3.12 -m mlcost measure --openml -d covertype --log -m NaiveBayes >> "azure/${timestamp}_covertype.log"
 python3.12 -m mlcost measure --openml -d covertype --log -m GradientBoost >> "azure/${timestamp}_covertype.log"
-python3.12 -m mlcost measure --openml -d covertype --log -m Neural >> "azure/${timestamp}_covertype.log"
 moveOutput azure/output${timestamp}.csv
 commit covertype
 
@@ -61,9 +60,14 @@ python3.12 -m mlcost measure --openml -d poker-hand --log -m Forest >> "azure/${
 python3.12 -m mlcost measure --openml -d poker-hand --log -m Neighbors >> "azure/${timestamp}_poker.log"
 python3.12 -m mlcost measure --openml -d poker-hand --log -m NaiveBayes >> "azure/${timestamp}_poker.log"
 python3.12 -m mlcost measure --openml -d poker-hand --log -m GradientBoost >> "azure/${timestamp}_poker.log"
-python3.12 -m mlcost measure --openml -d poker-hand --log -m Neural >> "azure/${timestamp}_poker.log"
 moveOutput azure/output${timestamp}.csv
 commit poker-hand
+
+# Overly long models
+python3.12 -m mlcost measure --openml -d covertype --log -m Neural >> "azure/${timestamp}_covertype.log"
+python3.12 -m mlcost measure --openml -d poker-hand --log -m Neural >> "azure/${timestamp}_poker.log"
+moveOutput azure/output${timestamp}.csv
+commit neural
 
 python3.12 -m mlcost measure --openml -d poker-hand --log -m SupportVector >> "azure/${timestamp}_poker.log"
 python3.12 -m mlcost measure --openml -d covertype --log -m SupportVector >> "azure/${timestamp}_covertype.log"
