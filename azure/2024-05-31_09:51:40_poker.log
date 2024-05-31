@@ -1,0 +1,225 @@
+---------------------------
+Running on mlcost-test2
+Ubuntu 20.04.6 LTS x86_64
+Python 3.12.3
+Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz
+Memory: 15.57 GB
+Start load: 25.00%
+---------------------------
+DATA PREPROCESSING SUMMARY
+Original data: 8.200e+07 bytes
+
+
+Discarded features: 0
+Discarded rows for missing labels: 0
+Trained numerical features: ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10']
+Trained categorical features: []
+
+Removed rows from missing categorical values - Train: 0 , Test: 0
+Final train set rows: 820007, test set rows: 205002
+
+Target distribution:
+          train      test
+Class                    
+1      0.501159  0.501200
+2      0.422578  0.422337
+3      0.047676  0.047478
+4      0.021096  0.021146
+5      0.003822  0.004117
+6      0.001991  0.002034
+7      0.001422  0.001434
+8      0.000228  0.000239
+9      0.000020  0.000005
+10     0.000007  0.000010
+---------------------------
+Linear
+test_accuracy: 0.10
+test_precision: 0.25
+test_f1_score: 0.33
+test_recall: 0.50
+n_samples: 1025009
+fit_time: 29.09
+Time: 29.09 s
+Emissions: 66.96 mg (CO2-equivalents)
+Energy consumed: 345.37 mWh
+---------------------------
+---------------------------
+Running on mlcost-test2
+Ubuntu 20.04.6 LTS x86_64
+Python 3.12.3
+Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz
+Memory: 15.57 GB
+Start load: 24.75%
+---------------------------
+DATA PREPROCESSING SUMMARY
+Original data: 8.200e+07 bytes
+
+
+Discarded features: 0
+Discarded rows for missing labels: 0
+Trained numerical features: ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10']
+Trained categorical features: []
+
+Removed rows from missing categorical values - Train: 0 , Test: 0
+Final train set rows: 820007, test set rows: 205002
+
+Target distribution:
+          train      test
+Class                    
+1      0.501159  0.501200
+2      0.422578  0.422337
+3      0.047676  0.047478
+4      0.021096  0.021146
+5      0.003822  0.004117
+6      0.001991  0.002034
+7      0.001422  0.001434
+8      0.000228  0.000239
+9      0.000020  0.000005
+10     0.000007  0.000010
+---------------------------
+Forest
+test_accuracy: 0.20
+test_precision: 0.75
+test_f1_score: 0.73
+test_recall: 0.76
+n_samples: 1025009
+fit_time: 151.44
+Time: 2 min 31.44 s
+Emissions: 360.37 mg (CO2-equivalents)
+Energy consumed: 1.86 Wh
+---------------------------
+---------------------------
+Running on mlcost-test2
+Ubuntu 20.04.6 LTS x86_64
+Python 3.12.3
+Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz
+Memory: 15.57 GB
+Start load: 25.00%
+---------------------------
+DATA PREPROCESSING SUMMARY
+Original data: 8.200e+07 bytes
+
+
+Discarded features: 0
+Discarded rows for missing labels: 0
+Trained numerical features: ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10']
+Trained categorical features: []
+
+Removed rows from missing categorical values - Train: 0 , Test: 0
+Final train set rows: 820007, test set rows: 205002
+
+Target distribution:
+          train      test
+Class                    
+1      0.501159  0.501200
+2      0.422578  0.422337
+3      0.047676  0.047478
+4      0.021096  0.021146
+5      0.003822  0.004117
+6      0.001991  0.002034
+7      0.001422  0.001434
+8      0.000228  0.000239
+9      0.000020  0.000005
+10     0.000007  0.000010
+---------------------------
+Neighbors
+test_accuracy: 0.19
+test_precision: 0.51
+test_f1_score: 0.52
+test_recall: 0.54
+n_samples: 1025009
+fit_time: 112.21
+Time: 1 min 52.21 s
+Emissions: 258.03 mg (CO2-equivalents)
+Energy consumed: 1.33 Wh
+---------------------------
+---------------------------
+Running on mlcost-test2
+Ubuntu 20.04.6 LTS x86_64
+Python 3.12.3
+Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz
+Memory: 15.57 GB
+Start load: 25.00%
+---------------------------
+DATA PREPROCESSING SUMMARY
+Original data: 8.200e+07 bytes
+
+
+Discarded features: 0
+Discarded rows for missing labels: 0
+Trained numerical features: ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10']
+Trained categorical features: []
+
+Removed rows from missing categorical values - Train: 0 , Test: 0
+Final train set rows: 820007, test set rows: 205002
+
+Target distribution:
+          train      test
+Class                    
+1      0.501159  0.501200
+2      0.422578  0.422337
+3      0.047676  0.047478
+4      0.021096  0.021146
+5      0.003822  0.004117
+6      0.001991  0.002034
+7      0.001422  0.001434
+8      0.000228  0.000239
+9      0.000020  0.000005
+10     0.000007  0.000010
+---------------------------
+NaiveBayes
+test_accuracy: 0.10
+test_precision: 0.25
+test_f1_score: 0.33
+test_recall: 0.50
+n_samples: 1025009
+fit_time: 1.16
+Time: 1.155 s
+Emissions: 2.66 mg (CO2-equivalents)
+Energy consumed: 13.70 mWh
+---------------------------
+---------------------------
+Running on mlcost-test2
+Ubuntu 20.04.6 LTS x86_64
+Python 3.12.3
+Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz
+Memory: 15.57 GB
+Start load: 27.00%
+---------------------------
+DATA PREPROCESSING SUMMARY
+Original data: 8.200e+07 bytes
+
+
+Discarded features: 0
+Discarded rows for missing labels: 0
+Trained numerical features: ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10']
+Trained categorical features: []
+
+Removed rows from missing categorical values - Train: 0 , Test: 0
+Final train set rows: 820007, test set rows: 205002
+
+Target distribution:
+          train      test
+Class                    
+1      0.501159  0.501200
+2      0.422578  0.422337
+3      0.047676  0.047478
+4      0.021096  0.021146
+5      0.003822  0.004117
+6      0.001991  0.002034
+7      0.001422  0.001434
+8      0.000228  0.000239
+9      0.000020  0.000005
+10     0.000007  0.000010
+---------------------------
+GradientBoost
+test_accuracy: 0.19
+test_precision: 0.60
+test_f1_score: 0.59
+test_recall: 0.63
+n_samples: 1025009
+fit_time: 968.05
+Time: 16 min 8.054 s
+Emissions: 2.23 g (CO2-equivalents)
+Energy consumed: 11.49 Wh
+---------------------------
