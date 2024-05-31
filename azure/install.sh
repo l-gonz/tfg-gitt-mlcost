@@ -31,33 +31,41 @@ $(cat /proc/meminfo | grep 'MemTotal')"
     git push origin
 }
 
+function moveOutput() {
+    if [ -f $1 ]; then
+        echo >> $1
+        tail -n +2 output.csv >> $1
+        rm output.csv
+    else
+        mv output.csv $1
+    fi
+}
+
 # Models
 timestamp=$(date +%F_%T)
-python3.12 -m mlcost measure --openml -d electricity --log > "azure/electricity${timestamp}.log"
-echo > "azure/electricity${timestamp}.log"
-mv output.csv azure/output${timestamp}.csv
+python3.12 -m mlcost measure --openml -d electricity --log > "azure/${timestamp}_electricity.log"
+moveOutput azure/output${timestamp}.csv
 commit electricity
 
-python3.12 -m mlcost measure --openml -d covertype --log -m Linear > "azure/covertype${timestamp}.log"
-python3.12 -m mlcost measure --openml -d covertype --log -m Forest >> "azure/covertype${timestamp}.log"
-python3.12 -m mlcost measure --openml -d covertype --log -m SupportVector >> "azure/covertype${timestamp}.log"
-python3.12 -m mlcost measure --openml -d covertype --log -m Neighbors >> "azure/covertype${timestamp}.log"
-python3.12 -m mlcost measure --openml -d covertype --log -m NaiveBayes >> "azure/covertype${timestamp}.log"
-python3.12 -m mlcost measure --openml -d covertype --log -m GradientBoost >> "azure/covertype${timestamp}.log"
-python3.12 -m mlcost measure --openml -d covertype --log -m Neural >> "azure/covertype${timestamp}.log"
-echo >> "azure/covertype${timestamp}.log"
-tail -n +2 output.csv >> azure/output${timestamp}.csv
-rm output.csv
+python3.12 -m mlcost measure --openml -d covertype --log -m Linear > "azure/${timestamp}_covertype.log"
+python3.12 -m mlcost measure --openml -d covertype --log -m Forest >> "azure/${timestamp}_covertype.log"
+python3.12 -m mlcost measure --openml -d covertype --log -m Neighbors >> "azure/${timestamp}_covertype.log"
+python3.12 -m mlcost measure --openml -d covertype --log -m NaiveBayes >> "azure/${timestamp}_covertype.log"
+python3.12 -m mlcost measure --openml -d covertype --log -m GradientBoost >> "azure/${timestamp}_covertype.log"
+python3.12 -m mlcost measure --openml -d covertype --log -m Neural >> "azure/${timestamp}_covertype.log"
+moveOutput azure/output${timestamp}.csv
 commit covertype
 
-python3.12 -m mlcost measure --openml -d poker-hand --log -m Linear > "azure/poker${timestamp}.log"
-python3.12 -m mlcost measure --openml -d poker-hand --log -m Forest >> "azure/poker${timestamp}.log"
-python3.12 -m mlcost measure --openml -d poker-hand --log -m SupportVector >> "azure/poker${timestamp}.log"
-python3.12 -m mlcost measure --openml -d poker-hand --log -m Neighbors >> "azure/poker${timestamp}.log"
-python3.12 -m mlcost measure --openml -d poker-hand --log -m NaiveBayes >> "azure/poker${timestamp}.log"
-python3.12 -m mlcost measure --openml -d poker-hand --log -m GradientBoost >> "azure/poker${timestamp}.log"
-python3.12 -m mlcost measure --openml -d poker-hand --log -m Neural >> "azure/poker${timestamp}.log"
-echo >> "azure/poker${timestamp}.log"
-tail -n +2 output.csv >> azure/output${timestamp}.csv
-rm output.csv
+python3.12 -m mlcost measure --openml -d poker-hand --log -m Linear > "azure/${timestamp}_poker.log"
+python3.12 -m mlcost measure --openml -d poker-hand --log -m Forest >> "azure/${timestamp}_poker.log"
+python3.12 -m mlcost measure --openml -d poker-hand --log -m Neighbors >> "azure/${timestamp}_poker.log"
+python3.12 -m mlcost measure --openml -d poker-hand --log -m NaiveBayes >> "azure/${timestamp}_poker.log"
+python3.12 -m mlcost measure --openml -d poker-hand --log -m GradientBoost >> "azure/${timestamp}_poker.log"
+python3.12 -m mlcost measure --openml -d poker-hand --log -m Neural >> "azure/${timestamp}_poker.log"
+moveOutput azure/output${timestamp}.csv
 commit poker-hand
+
+python3.12 -m mlcost measure --openml -d poker-hand --log -m SupportVector >> "azure/${timestamp}_poker.log"
+python3.12 -m mlcost measure --openml -d covertype --log -m SupportVector >> "azure/${timestamp}_covertype.log"
+moveOutput azure/output${timestamp}.csv
+commit support-vector
