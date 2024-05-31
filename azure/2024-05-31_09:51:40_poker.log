@@ -223,3 +223,48 @@ Time: 16 min 8.054 s
 Emissions: 2.23 g (CO2-equivalents)
 Energy consumed: 11.49 Wh
 ---------------------------
+---------------------------
+Running on mlcost-test2
+Ubuntu 20.04.6 LTS x86_64
+Python 3.12.3
+Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz
+Memory: 15.57 GB
+Start load: 94.00%
+---------------------------
+DATA PREPROCESSING SUMMARY
+Original data: 8.200e+07 bytes
+
+
+Discarded features: 0
+Discarded rows for missing labels: 0
+Trained numerical features: ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10']
+Trained categorical features: []
+
+Removed rows from missing categorical values - Train: 0 , Test: 0
+Final train set rows: 820007, test set rows: 205002
+
+Target distribution:
+          train      test
+Class                    
+1      0.501159  0.501200
+2      0.422578  0.422337
+3      0.047676  0.047478
+4      0.021096  0.021146
+5      0.003822  0.004117
+6      0.001991  0.002034
+7      0.001422  0.001434
+8      0.000228  0.000239
+9      0.000020  0.000005
+10     0.000007  0.000010
+---------------------------
+Neural
+test_accuracy: 0.88
+test_precision: 1.00
+test_f1_score: 1.00
+test_recall: 1.00
+n_samples: 1025009
+fit_time: 682.84
+Time: 11 min 22.84 s
+Emissions: 1.57 g (CO2-equivalents)
+Energy consumed: 8.10 Wh
+---------------------------
