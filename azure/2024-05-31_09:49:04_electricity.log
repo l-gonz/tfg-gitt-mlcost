@@ -1,0 +1,48 @@
+---------------------------
+Running on mlcost-test2
+Ubuntu 20.04.6 LTS x86_64
+Python 3.12.3
+Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz
+Memory: 15.57 GB
+Start load: 24.50%
+---------------------------
+DATA PREPROCESSING SUMMARY
+Original data: 2.584e+06 bytes
+
+
+Discarded features: 0
+Discarded rows for missing labels: 0
+Trained numerical features: ['date', 'period', 'nswprice', 'nswdemand', 'vicprice', 'vicdemand', 'transfer']
+Trained categorical features: ['day']
+
+Removed rows from missing categorical values - Train: 0 , Test: 0
+Final train set rows: 36249, test set rows: 9063
+
+Target distribution:
+         train      test
+class                   
+DOWN   0.57403  0.581154
+UP     0.42597  0.418846
+---------------------------
+Linear
+test_accuracy: 0.75
+test_precision: 0.77
+test_f1_score: 0.76
+test_recall: 0.77
+n_samples: 45312
+fit_time: 0.12
+Time: 121.8 ms
+Emissions: 278.93 μg (CO2-equivalents)
+Energy consumed: 1.44 mWh
+---------------------------
+Forest
+test_accuracy: 0.91
+test_precision: 0.91
+test_f1_score: 0.91
+test_recall: 0.91
+n_samples: 45312
+fit_time: 5.16
+Time: 5.157 s
+Emissions: 11.83 mg (CO2-equivalents)
+Energy consumed: 61.03 mWh
+---------------------------
