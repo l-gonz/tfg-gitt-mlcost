@@ -66,7 +66,7 @@ def print_computer_info():
     print("Running on " + platform.node())
     try:
         print(platform.freedesktop_os_release()['PRETTY_NAME'] + " " + platform.machine())
-    except AttributeError:
+    except (AttributeError, FileNotFoundError):
         print(f"{platform.system()} {platform.release()}")
         
     print("Python " + platform.python_version())
