@@ -84,7 +84,7 @@ def print_computer_info():
                 count += 1
                 ram[0] = int(ram[0]) / 1024
             print("Memory: " + str("%.2f" % round(ram[0],2)) + " " + ("kB" if count == 0 else "MB" if count == 1 else "GB"))
-    print("Start load: " + f"{psutil.getloadavg()[0] / psutil.cpu_count() * 100:.2f}%")
+    print("Start load: " + f"{psutil.getloadavg()[0] / psutil.cpu_count() * 100:.2f}% for {psutil.cpu_count()} CPUs")
     print("---------------------------")
 
 
