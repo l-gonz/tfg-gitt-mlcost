@@ -149,6 +149,10 @@ def main(file):
     # plot_lines(average_data, "n_samples", "test_f1_score", "model", "log")
     # scatter_four_dimensions(data, "fit_emissions", "test_f1_score", "model", "dataset", "log")
 
+    # ------- Part 2 -------
+    # scatter_four_dimensions(data, "energy_per_second", "test_f1_score", "model", "dataset", "log")
+    scatter_four_dimensions(average_data, "emissions", "test_f1_score", "model", "dataset", "log")
+
     key_pressed = False
     while not key_pressed:
         key_pressed = plt.waitforbuttonpress()
