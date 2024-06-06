@@ -118,6 +118,7 @@ def plot_lines(data: pandas.DataFrame, x_axis, y_axis, category, xcale="linear",
 
 def __add_derived_columns(data):
     data["fit_emissions"] = data["emissions"] / data["emission_time"] * data["fit_time"]
+    data["energy_per_second"] = data["energy_consumed"] / data["emission_time"]
 
 def include(matrix, column, *names):
     return matrix[matrix[column].isin(names)]
