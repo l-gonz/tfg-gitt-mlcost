@@ -12,7 +12,7 @@ sudo apt install -y python3.12
 sudo apt install -y python3.12-venv
 
 ghtoken=$(az keyvault secret show -n Github-Token --vault-name kv-mlcost --query "value" -o tsv)
-cd ~/tfg-gitt-mlcost
+cd ~/tfg-gitt-mlcost-azure
 git remote set-url origin https://azure-machine:${ghtoken}@github.com/l-gonz/tfg-gitt-mlcost.git
 git config --local user.email "azure.machine@email.com"
 git config --local user.name "azure-machine"
