@@ -96,13 +96,15 @@ def scatter_three_dimensions(data, x_axis, y_axis, category):
     plt.show(block=False)
 
 
-def plot_bars(data: pandas.DataFrame, x_axis, y_axis, category):
+def plot_bars(data: pandas.DataFrame, x_axis, y_axis, category, xcale="linear", yscale="linear"):
     ax = data.pivot(index=x_axis, columns=category, values=y_axis).plot(kind='bar', rot=0)
-    ax.set_ylim(0.5, 1)
+    # ax.set_ylim(0.5, 1)
     ax.set_title("Plot")
     ax.set_xlabel(x_axis)
     ax.set_ylabel(y_axis)
-    plt.show(block=True)
+    ax.set_xscale(xcale)
+    ax.set_yscale(yscale)
+    plt.show(block=False)
 
 def plot_lines(data: pandas.DataFrame, x_axis, y_axis, category, xcale="linear", yscale="linear"):
     data[category] = data[category].astype(pandas.CategoricalDtype(MODEL_TYPES.keys(), ordered = True))
@@ -150,8 +152,10 @@ def main(file):
     # scatter_four_dimensions(data, "fit_emissions", "test_f1_score", "model", "dataset", "log")
 
     # ------- Part 2 -------
-    # scatter_four_dimensions(data, "energy_per_second", "test_f1_score", "model", "dataset", "log")
-    scatter_four_dimensions(average_data, "emissions", "test_f1_score", "model", "dataset", "log")
+    plot_bars(average_data, "model", "energy_per_second", "dataset", yscale="log")
+    # scatter_four_dimensions(average_data, "energy_per_second", "test_f1_score", "model", "dataset", "log")
+    # scatter_four_dimensions(average_data, "emissions", "test_f1_score", "model", "dataset", "log")
+    # scatter_four_dimensions(average_data, "fit_emissions", "test_f1_score", "model", "dataset", "log")
 
     key_pressed = False
     while not key_pressed:
