@@ -22,8 +22,9 @@ def main():
 @click.option('--log', is_flag='True', help='output to additional csv file with whole experiment data')
 @click.option('--no-header', is_flag='True', help='do not consider the first row in the data to be the header')
 @click.option('--openml', is_flag='True', help='fetch dataset from openml')
-def measure(dataset, labels, test, separator, codecarbon_file, model, cross_validate, online, log, no_header, openml):
-    mlcost.main(dataset, labels, test, separator, codecarbon_file, model, cross_validate, online, log, no_header, openml)
+@click.option('--parallel', is_flag='True', help='parellelize cross validation between all cores, needs -cv option')
+def measure(dataset, labels, test, separator, codecarbon_file, model, cross_validate, online, log, no_header, openml, parallel):
+    mlcost.main(dataset, labels, test, separator, codecarbon_file, model, cross_validate, online, log, no_header, openml, parallel)
 
 
 @main.command()

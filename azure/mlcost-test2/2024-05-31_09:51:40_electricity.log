@@ -1,0 +1,103 @@
+---------------------------
+Running on mlcost-test2
+Ubuntu 20.04.6 LTS x86_64
+Python 3.12.3
+Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz
+Memory: 15.57 GB
+Start load: 12.25%
+---------------------------
+DATA PREPROCESSING SUMMARY
+Original data: 2.584e+06 bytes
+
+
+Discarded features: 0
+Discarded rows for missing labels: 0
+Trained numerical features: ['date', 'period', 'nswprice', 'nswdemand', 'vicprice', 'vicdemand', 'transfer']
+Trained categorical features: ['day']
+
+Removed rows from missing categorical values - Train: 0 , Test: 0
+Final train set rows: 36249, test set rows: 9063
+
+Target distribution:
+         train      test
+class                   
+DOWN   0.57403  0.581154
+UP     0.42597  0.418846
+---------------------------
+Linear
+test_accuracy: 0.75
+test_precision: 0.77
+test_f1_score: 0.76
+test_recall: 0.77
+n_samples: 45312
+fit_time: 0.12
+Time: 124.8 ms
+Emissions: 285.80 μg (CO2-equivalents)
+Energy consumed: 1.47 mWh
+---------------------------
+Forest
+test_accuracy: 0.91
+test_precision: 0.91
+test_f1_score: 0.91
+test_recall: 0.91
+n_samples: 45312
+fit_time: 5.20
+Time: 5.201 s
+Emissions: 11.93 mg (CO2-equivalents)
+Energy consumed: 61.55 mWh
+---------------------------
+SupportVector
+test_accuracy: 0.79
+test_precision: 0.81
+test_f1_score: 0.80
+test_recall: 0.81
+n_samples: 45312
+fit_time: 33.87
+Time: 33.87 s
+Emissions: 77.81 mg (CO2-equivalents)
+Energy consumed: 401.39 mWh
+---------------------------
+Neighbors
+test_accuracy: 0.83
+test_precision: 0.83
+test_f1_score: 0.83
+test_recall: 0.83
+n_samples: 45312
+fit_time: 0.96
+Time: 962 ms
+Emissions: 2.21 mg (CO2-equivalents)
+Energy consumed: 11.40 mWh
+---------------------------
+NaiveBayes
+test_accuracy: 0.70
+test_precision: 0.78
+test_f1_score: 0.72
+test_recall: 0.74
+n_samples: 45312
+fit_time: 0.04
+Time: 44.03 ms
+Emissions: 101.05 μg (CO2-equivalents)
+Energy consumed: 521.25 μWh
+---------------------------
+GradientBoost
+test_accuracy: 0.83
+test_precision: 0.84
+test_f1_score: 0.84
+test_recall: 0.84
+n_samples: 45312
+fit_time: 5.50
+Time: 5.503 s
+Emissions: 12.64 mg (CO2-equivalents)
+Energy consumed: 65.22 mWh
+---------------------------
+Neural
+test_accuracy: 0.82
+test_precision: 0.83
+test_f1_score: 0.83
+test_recall: 0.83
+n_samples: 45312
+fit_time: 82.99
+Time: 1 min 22.99 s
+Emissions: 190.67 mg (CO2-equivalents)
+Energy consumed: 983.52 mWh
+---------------------------
