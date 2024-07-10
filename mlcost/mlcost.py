@@ -25,10 +25,10 @@ def stop_benchmark(em_tracker: BaseEmissionsTracker):
     return em_tracker.final_emissions_data
     
 
-def main(dataset, labels, test, separator, codecarbon_file, model, cross_validate, online, log, no_header, openml):
+def main(dataset, labels, test, separator, codecarbon_file, model, cross_validate, online, log, no_header, openml, parallel):
     utils.print_computer_info()
 
-    trainer = learn.Trainer(dataset, test, labels, cross_validate, separator, no_header, openml)
+    trainer = learn.Trainer(dataset, test, labels, cross_validate, separator, no_header, openml, parallel)
     trainer.clean_data(log_output=True)
     models = learn.MODEL_TYPES.items() if not model else [(model, learn.MODEL_TYPES[model])]
     

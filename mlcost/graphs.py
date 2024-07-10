@@ -49,7 +49,8 @@ def boxplot(data: pandas.DataFrame, name):
     ax.set_title(name)
     plt.show(block=False)
 
-def scatter_four_dimensions(data, x_axis, y_axis, main_category, sec_category, xscale="linear"):
+def scatter_four_dimensions(data, x_axis, y_axis, main_category, sec_category,
+                            xscale="linear", xlabel=None, ylabel=None):
     main_cat_names = data[main_category].unique()
     sec_cat_names = data[sec_category].unique()
     scatter_mat = []
@@ -68,11 +69,11 @@ def scatter_four_dimensions(data, x_axis, y_axis, main_category, sec_category, x
 
     legend1 = ax.legend([l[0] for l in scatter_mat], main_cat_names, loc='lower right', title=main_category)
     ax.add_artist(legend1)
-    ax.legend(scatter_mat[0], sec_cat_names, loc='lower right', bbox_to_anchor=(0.85, 0), title=sec_category)
-    ax.set_title("Plot")
+    ax.legend(scatter_mat[0], sec_cat_names, loc='lower right', bbox_to_anchor=(0.8, 0), title=sec_category)
+    # ax.set_title(title)
     ax.set_xscale(xscale)
-    ax.set_xlabel(x_axis)
-    ax.set_ylabel(y_axis)
+    ax.set_xlabel(xlabel if xlabel else x_axis)
+    ax.set_ylabel(ylabel if ylabel else y_axis)
     plt.show(block=False)
 
 
@@ -96,18 +97,9 @@ def scatter_three_dimensions(data, x_axis, y_axis, category):
     plt.show(block=False)
 
 
-def plot_bars(data: pandas.DataFrame, x_axis, y_axis, category):
+def plot_bars(data: pandas.DataFrame, x_axis, y_axis, category, xcale="linear", yscale="linear"):
     ax = data.pivot(index=x_axis, columns=category, values=y_axis).plot(kind='bar', rot=0)
-    ax.set_ylim(0.5, 1)
-    ax.set_title("Plot")
-    ax.set_xlabel(x_axis)
-    ax.set_ylabel(y_axis)
-    plt.show(block=True)
-
-def plot_lines(data: pandas.DataFrame, x_axis, y_axis, category, xcale="linear", yscale="linear"):
-    data[category] = data[category].astype(pandas.CategoricalDtype(MODEL_TYPES.keys(), ordered = True))
-    data_ref = data.pivot(index=x_axis, columns=category, values=y_axis)
-    ax = data_ref.plot(marker='o')
+    # ax.set_ylim(0.5, 1)
     ax.set_title("Plot")
     ax.set_xlabel(x_axis)
     ax.set_ylabel(y_axis)
@@ -115,9 +107,28 @@ def plot_lines(data: pandas.DataFrame, x_axis, y_axis, category, xcale="linear",
     ax.set_yscale(yscale)
     plt.show(block=False)
 
+def plot_lines(data: pandas.DataFrame, x_axis, y_axis, category, 
+               xscale="linear", yscale="linear",
+               xlabel=None, ylabel=None, outside_legend=False):
+    data_ref = data.pivot(index=x_axis, columns=category, values=y_axis)
+    ax = data_ref.plot(marker='o')
+    # ax.set_title(title)
+    ax.set_xlabel(xlabel if xlabel is not None else x_axis)
+    ax.set_ylabel(ylabel if ylabel is not None else y_axis)
+    ax.set_xscale(xscale)
+    ax.set_yscale(yscale)
+    if outside_legend:
+        box = ax.get_position() 
+        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        ax.legend(loc='upper left', bbox_to_anchor=(1, 1), title=category)
+    ax.set_xticks(data_ref.index.codes)
+    ax.set_xticklabels(data_ref.index.array)
+    plt.show(block=False)
+
 
 def __add_derived_columns(data):
     data["fit_emissions"] = data["emissions"] / data["emission_time"] * data["fit_time"]
+    data["emissions_per_second"] = data["emissions"] / data["emission_time"]
 
 def include(matrix, column, *names):
     return matrix[matrix[column].isin(names)]
@@ -127,15 +138,13 @@ def exclude(matrix, column, *names):
 
 
 def main(file):
-    data = pandas.read_csv(file)
+    data = pandas.read_csv(file, dtype={
+        'model': pandas.CategoricalDtype(MODEL_TYPES.keys(), ordered = True), 
+        "dataset": pandas.CategoricalDtype(ordered=True)})
     __add_derived_columns(data)
-    average_data = data.groupby(["model", "dataset"], as_index=False).mean()
+    average_data = data.groupby(["model", "dataset"], as_index=False, observed=True).mean()
 
-    # name = data.iloc[0,0].split('/')[-1].split('.')[0].capitalize()
-    # plot_accuracy_emissions(data, name)
-    # boxplot(data, name)
-
-    
+    # ------- TEST --------
     # scatter_four_dimensions(average_data, "fit_emissions", "test_f1_score", "model", "dataset", "log")
     # scatter_three_dimensions(data[data["dataset"] == "Iris"], "fit_emissions", "test_f1_score", "model")
     # scatter_three_dimensions(data[data["dataset"] == "Ionosphere"], "fit_emissions", "test_f1_score", "model")
@@ -144,9 +153,26 @@ def main(file):
     # plot_bars(average_data, "dataset", "test_f1_score", "model")
 
     # ------ Part 1 -------
-    # plot_lines(average_data, "n_samples", "fit_emissions", "model", "log", "log")
-    # plot_lines(average_data, "n_samples", "test_f1_score", "model", "log")
-    # scatter_four_dimensions(data, "fit_emissions", "test_f1_score", "model", "dataset", "log")
+    # Run with out/all-models-laptop.csv
+    if "laptop" in file:
+        scatter_four_dimensions(data, "fit_emissions", "test_f1_score", "model", "dataset", "log", 
+                                "Emisiones por iteración [kg CO2eq]", "Valor-F [-]")
+        plot_lines(average_data, "n_samples", "fit_emissions", "model", "log", "log",
+                "Nº de muestras", "Emisiones medias por iteración [kg CO2eq]")
+        plot_lines(average_data, "n_samples", "test_f1_score", "model", "log", "linear", 
+                "Nº de muestras", "Valor-F medio [-]")
+
+    # ------- Part 2 -------
+    # Run with out/output-parallel-azure-electricity.csv
+    if "parallel" in file:
+        scatter_four_dimensions(data, "fit_emissions", "test_f1_score", "model", "dataset", "log",
+                                "Emisiones por iteración [kg CO2eq]", "Valor-F [-]")
+        scatter_four_dimensions(average_data, "fit_emissions", "test_f1_score", "model", "dataset", "log",
+                                "Emisiones medias por iteración [kg CO2eq]", "Valor-F medio [-]")
+        plot_lines(average_data, "dataset", "emissions_per_second", "model", yscale="log",
+                xlabel="", ylabel="Emisiones por segundo [kg CO2eq / s]")
+        plot_lines(average_data, "dataset", "emissions", "model", yscale="log",
+                xlabel="", ylabel="Emisiones totales [kg CO2eq]", outside_legend=True)
 
     key_pressed = False
     while not key_pressed:

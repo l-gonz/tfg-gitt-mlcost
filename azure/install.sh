@@ -1,53 +1,23 @@
 #!/bin/bash
 
+# Run to get this script
+# git clone https://github.com/l-gonz/tfg-gitt-mlcost.git --branch=azure tfg-gitt-mlcost-azure
+
 # Installation
-sudo add-apt-repository ppa:deadsnakes/ppa
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+az login
+
+sudo add-apt-repository ppa:deadsnakes/ppa -y
 sudo apt install -y python3.12
 sudo apt install -y python3.12-venv
 
-cd ~
-git config --global user.email "placeholder@email.com"
-git config --global user.name "azure-machine"
-git clone https://azure-machine:${github-token}@github.com/l-gonz/tfg-gitt-mlcost.git --branch=azure
-cd tfg-gitt-mlcost
-git checkout azure
+ghtoken=$(az keyvault secret show -n Github-Token --vault-name kv-mlcost --query "value" -o tsv)
+cd ~/tfg-gitt-mlcost-azure
+git remote set-url origin https://azure-machine:${ghtoken}@github.com/l-gonz/tfg-gitt-mlcost.git
+git config --local user.email "azure.machine@email.com"
+git config --local user.name "azure-machine"
 
 python3.12 -m venv .venv
 source .venv/bin/activate
 python3.12 -m pip install -r requirements.txt
 python3.12 -m pip install -e .
-
-
-# Commit
-function commit() {
-    mv output.csv azure/output${timestamp}.csv
-    git add azure/*
-    cpu=$(cat /proc/cpuinfo  | grep 'name'| uniq)
-    mem=
-    git commit -m "Measure covertype in Azure machine" -m "$(cat /proc/cpuinfo  | grep 'name'| uniq)
-    $(cat /proc/meminfo | grep 'MemTotal')"
-}
-
-# Models
-timestamp=$(date +%F_%T)
-python3.12 -m mlcost measure --log -m Linear > "azure/iris${timestamp}.log"
-python3.12 -m mlcost measure --log -m Forest >> "azure/iris${timestamp}.log"
-commit
-
-# python3.12 -m mlcost measure --openml -d covertype --log -m Linear > "azure/covertype${timestamp}.log"
-# python3.12 -m mlcost measure --openml -d covertype --log -m Forest >> "azure/covertype${timestamp}.log"
-# python3.12 -m mlcost measure --openml -d covertype --log -m SupportVector >> "azure/covertype${timestamp}.log"
-# python3.12 -m mlcost measure --openml -d covertype --log -m Neighbors >> "azure/covertype${timestamp}.log"
-# python3.12 -m mlcost measure --openml -d covertype --log -m NaiveBayes >> "azure/covertype${timestamp}.log"
-# python3.12 -m mlcost measure --openml -d covertype --log -m GradientBoost >> "azure/covertype${timestamp}.log"
-# python3.12 -m mlcost measure --openml -d covertype --log -m Neural >> "azure/covertype${timestamp}.log"
-# commit
-
-# python3.12 -m mlcost measure --openml -d poker-hand --log -m Linear > "azure/poker${timestamp}.log"
-# python3.12 -m mlcost measure --openml -d poker-hand --log -m Forest >> "azure/poker${timestamp}.log"
-# python3.12 -m mlcost measure --openml -d poker-hand --log -m SupportVector >> "azure/poker${timestamp}.log"
-# python3.12 -m mlcost measure --openml -d poker-hand --log -m Neighbors >> "azure/poker${timestamp}.log"
-# python3.12 -m mlcost measure --openml -d poker-hand --log -m NaiveBayes >> "azure/poker${timestamp}.log"
-# python3.12 -m mlcost measure --openml -d poker-hand --log -m GradientBoost >> "azure/poker${timestamp}.log"
-# python3.12 -m mlcost measure --openml -d poker-hand --log -m Neural >> "azure/poker${timestamp}.log"
-# commit

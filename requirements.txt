@@ -3,4 +3,9 @@ scikit-learn==1.4.1.post1
 pytest>=7.4.3
 click>=8.1.7
 matplotlib>=3.7.4
+
+# CodeCarbon specific requirements
 setuptools
+dash
+dash_bootstrap_components
+fire

@@ -21,13 +21,13 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.pipeline import Pipeline
 
 MODEL_TYPES = {
-    'Linear': LogisticRegression(max_iter=2000, verbose=1),
-    'Forest': RandomForestClassifier(verbose=1),
-    'SupportVector': SVC(verbose=1),
+    'Linear': LogisticRegression(max_iter=2000, class_weight='balanced'),
+    'Forest': RandomForestClassifier(class_weight='balanced'),
+    'SupportVector': SVC(),
     'Neighbors': KNeighborsClassifier(),
     'NaiveBayes': GaussianNB(),
-    'GradientBoost': GradientBoostingClassifier(verbose=1),
-    'Neural': MLPClassifier(max_iter=5000, verbose=1),
+    'GradientBoost': GradientBoostingClassifier(),
+    'Neural': MLPClassifier(max_iter=5000),
 }
 
 class Trainer():
@@ -37,15 +37,18 @@ class Trainer():
     RANDOM_STATE = 5
 
 
-    def __init__(self, data_path, test_path=None, target_label=None, cross_validate=1, separator=',', no_header=False, openml=False, null_values='?'):
+    def __init__(self, data_path, test_path=None, target_label=None, cross_validate=1, separator=',', no_header=False, openml=False, parallel=False, null_values='?'):
         if data_path:
             self.name = data_path.split('/')[-1].split('.')[0].capitalize()
         else:
             self.name = self.DEFAULT_DATASET_NAME
+        if parallel:
+            self.name += "-P"
 
         self.target_label = target_label
         self.read_args = self.__get_read_args(separator, no_header, null_values)
         self.cross_validate_folds = cross_validate
+        self.n_jobs = -1 if parallel else None
 
         self.original_data, self.original_targets = self.__read_data(data_path, openml)
         self.__identify_columns()
@@ -187,7 +190,7 @@ class Trainer():
                                     'recall': make_scorer(recall_score, average='weighted'),
                                     'f1_score': make_scorer(f1_score, average='weighted')
                                 },
-                                cv=fold, n_jobs=None)
+                                cv=fold, n_jobs=self.n_jobs)
         cv_scores["n_samples"] = [self.original_data.shape[0]] * len(cv_scores["fit_time"])
 
         return cv_scores
@@ -198,9 +201,10 @@ class Trainer():
         # Number of rows before and after
 
         print("DATA PREPROCESSING SUMMARY")
-        print(f"Original data: {self.original_data.memory_usage(index=True, deep=True).sum():.3e} bytes\n")
+        print(f"Original data: {self.original_data.memory_usage(index=True, deep=True).sum():.3e} bytes")
+        print()
         
-        print(f"\nDiscarded features: {len([col for col in self.original_data if col not in self.numerical_cols + self.categorical_cols])}")
+        print(f"Discarded features: {len([col for col in self.original_data if col not in self.numerical_cols + self.categorical_cols])}")
         print(f"Discarded rows for missing labels: {self.raw_data.shape[0] - self.original_data.shape[0]}")
         print(f"Trained numerical features: {self.numerical_cols}")
         print(f"Trained categorical features: {self.categorical_cols}")
