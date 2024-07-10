@@ -21,6 +21,3 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 python3.12 -m pip install -r requirements.txt
 python3.12 -m pip install -e .
-
-#sh azure/big-data.sh
-sh azure/parallel.sh

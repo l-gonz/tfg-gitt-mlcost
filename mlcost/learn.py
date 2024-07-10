@@ -21,8 +21,8 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.pipeline import Pipeline
 
 MODEL_TYPES = {
-    'Linear': LogisticRegression(max_iter=2000),
-    'Forest': RandomForestClassifier(),
+    'Linear': LogisticRegression(max_iter=2000, class_weight='balanced'),
+    'Forest': RandomForestClassifier(class_weight='balanced'),
     'SupportVector': SVC(),
     'Neighbors': KNeighborsClassifier(),
     'NaiveBayes': GaussianNB(),
@@ -201,9 +201,10 @@ class Trainer():
         # Number of rows before and after
 
         print("DATA PREPROCESSING SUMMARY")
-        print(f"Original data: {self.original_data.memory_usage(index=True, deep=True).sum():.3e} bytes\n")
+        print(f"Original data: {self.original_data.memory_usage(index=True, deep=True).sum():.3e} bytes")
+        print()
         
-        print(f"\nDiscarded features: {len([col for col in self.original_data if col not in self.numerical_cols + self.categorical_cols])}")
+        print(f"Discarded features: {len([col for col in self.original_data if col not in self.numerical_cols + self.categorical_cols])}")
         print(f"Discarded rows for missing labels: {self.raw_data.shape[0] - self.original_data.shape[0]}")
         print(f"Trained numerical features: {self.numerical_cols}")
         print(f"Trained categorical features: {self.categorical_cols}")

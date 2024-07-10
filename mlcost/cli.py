@@ -10,7 +10,6 @@ def main():
     pass
 
 @main.command()
-# argparse.ArgumentParser(description='Dashboard to evaluate the cost of different ML models')
 @click.option('-d', '--dataset', help='filepath to dataset, uses Iris dataset if none given. If using the --openml option, it is the dataset id in openml', type=click.Path(exists=False, dir_okay=False))
 @click.option('-l', '--labels', help='labels column, defaults to last column')
 @click.option('-t', '--test', help='filepath to test set, if none will get split test set from dataset', type=click.Path(exists=True, dir_okay=False))
@@ -28,8 +27,7 @@ def measure(dataset, labels, test, separator, codecarbon_file, model, cross_vali
 
 
 @main.command()
-# parser = argparse.ArgumentParser(description='Tool to graph the data obtained from the main app')
-@click.option('-f', '--file', help='filepath to csv file that contains the data', required=True, type=click.Path(dir_okay=False))
+@click.option('-f', '--file', help='filepath to csv file that contains the data', required=True, type=click.Path(exists=True, dir_okay=False))
 def plot(file):
     graphs.main(file)
 

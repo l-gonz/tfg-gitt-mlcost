@@ -1,8 +1,6 @@
 #!/bin/bash
 
 timestamp=$(date +%F_%T)
-python -m mlcost measure --log -cv 5 --openml -d eeg-eye-state
-python -m mlcost measure --log -cv 5 --openml -d eeg-eye-state --parallel
 python -m mlcost measure --log -cv 5 --openml -d electricity
 python -m mlcost measure --log -cv 5 --openml -d electricity --parallel
 
